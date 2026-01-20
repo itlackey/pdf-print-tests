@@ -1,0 +1,144 @@
+/* ==========================================================================
+   WeasyPrint Engine-Specific Overrides
+   Fixes incompatibilities and provides alternatives to unsupported features
+   ========================================================================== */
+
+/* ===== INCOMPATIBILITY FIXES ===== */
+
+/* Fix 1: WeasyPrint doesn't support position: running()
+   Replace with direct string-set on headers */
+.running-header {
+  position: static !important;
+  display: none !important;
+}
+
+/* Fix 2: WeasyPrint doesn't support env() variables
+   Replace with direct named strings */
+@page :left {
+  @top-left {
+    content: "WeasyPrint Kitchen Sink"; /* Fallback for env(pub-title) */
+    font-family: var(--font-serif, serif);
+    font-size: 8pt;
+    font-style: italic;
+    color: var(--color-muted, #666);
+  }
+}
+
+/* Fix 3: Ensure CSS variables work in @page context
+   WeasyPrint resolves variables differently than Chromium */
+@page {
+  /* WeasyPrint needs explicit values, not CSS variables in some contexts */
+  size: 6.25in 9.25in;
+  margin: 0.625in 0.5in 0.625in 0.5in; /* top right bottom left */
+}
+
+/* Fix 4: Better page break control for WeasyPrint */
+h1, h2, h3, h4, h5, h6 {
+  break-after: avoid;
+  page-break-after: avoid; /* Fallback */
+}
+
+/* Avoid breaks inside elements */
+.test-box,
+.color-grid,
+.stat-block,
+figure,
+table {
+  break-inside: avoid;
+  page-break-inside: avoid; /* Fallback */
+}
+
+/* Fix 5: WeasyPrint handles orphans/widows strictly */
+p {
+  orphans: 3;
+  widows: 3;
+}
+
+/* Fix 6: Table breaking - WeasyPrint specific */
+table {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+thead {
+  break-inside: avoid;
+  break-after: avoid;
+}
+
+tr {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+/* Fix 7: Better hyphenation support in WeasyPrint */
+p, li, td, th {
+  hyphens: auto;
+  -webkit-hyphens: auto;
+  hyphenate-limit-chars: 6 3 3; /* WeasyPrint supports this */
+  hyphenate-limit-lines: 2;
+}
+
+/* Prevent hyphenation in headings and code */
+h1, h2, h3, h4, h5, h6, code, pre, kbd {
+  hyphens: none;
+  -webkit-hyphens: none;
+}
+
+/* Fix 8: WeasyPrint handles flexbox differently
+   Provide fallbacks for critical layouts */
+.title-content {
+  /* WeasyPrint has basic flexbox support, but fallbacks are safer */
+  display: block !important;
+  text-align: center;
+}
+
+/* Fix 9: Form elements (WeasyPrint doesn't render default browser controls) */
+input, textarea, select, button {
+  border: 1px solid #666;
+  padding: 0.25em 0.5em;
+  background: white;
+  font-family: inherit;
+  font-size: inherit;
+}
+
+/* Show input values using pseudo-elements */
+input[type="text"]::before,
+input[type="email"]::before {
+  content: attr(value);
+  display: block;
+}
+
+/* Fix 10: Viewport units behave differently in paged media */
+/* WeasyPrint calculates viewport relative to page size, not screen */
+.unit-viewport {
+  /* Use fixed measurements instead of vh/vw for consistent results */
+  width: 2in !important; /* Instead of 10vw */
+  height: 1in !important; /* Instead of 5vh */
+}
+
+/* Fix 11: Background colors and images in page margins
+   WeasyPrint fully supports this (unlike Chromium) */
+@page {
+  background: white; /* Explicit background for page */
+}
+
+/* Fix 12: Better support for CMYK colors in WeasyPrint */
+/* WeasyPrint properly handles device-cmyk() unlike Chromium */
+/* The gradient colors will be converted correctly without black generation */
+
+/* Fix 13: List counters work better in WeasyPrint */
+ol {
+  counter-reset: item;
+}
+
+ol li {
+  counter-increment: item;
+}
+
+/* Fix 14: Multi-column layout - WeasyPrint has better support than Vivliostyle */
+.multi-column {
+  column-count: 2;
+  column-gap: 1.5em;
+  column-rule: 1px solid #ddd;
+  /* WeasyPrint handles columns well, no need for workarounds */
+}

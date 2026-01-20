@@ -12,6 +12,7 @@ import { fileURLToPath } from "node:url";
 
 import { buildWithPagedJS } from "./build-pagedjs.ts";
 import { buildWithVivliostyle } from "./build-vivliostyle.ts";
+import { buildWithWeasyPrint } from "./build-weasyprint.ts";
 import { convertToPdfx } from "./convert-pdfx.ts";
 import { runComparisonInDir } from "./compare-pdfs.ts";
 import { validatePdf } from "./validate-pdfs.ts";
@@ -43,6 +44,7 @@ interface BatchOptions {
   htmlFile: string;
   skipPagedJS: boolean;
   skipVivliostyle: boolean;
+  skipWeasyPrint: boolean;
   skipConvert: boolean;
   skipCompare: boolean;
   strictCompliance?: boolean; // Fail if PDFs are not compliant
@@ -62,6 +64,7 @@ function parseArgs(): BatchOptions {
     htmlFile: "book.html",
     skipPagedJS: false,
     skipVivliostyle: false,
+    skipWeasyPrint: false,
     skipConvert: false,
     skipCompare: false,
     strictCompliance: false,
@@ -90,6 +93,9 @@ function parseArgs(): BatchOptions {
       case "--skip-vivliostyle":
         options.skipVivliostyle = true;
         break;
+      case "--skip-weasyprint":
+        options.skipWeasyPrint = true;
+        break;
       case "--skip-convert":
         options.skipConvert = true;
         break;
@@ -109,12 +115,14 @@ async function processBatch(options: BatchOptions): Promise<{
   success: boolean;
   pagedjs: { build: boolean; convert: boolean; compliant: boolean; tacValidation?: TACValidationResult };
   vivliostyle: { build: boolean; convert: boolean; compliant: boolean; tacValidation?: TACValidationResult };
+  weasyprint: { build: boolean; convert: boolean; compliant: boolean; tacValidation?: TACValidationResult };
   errors: string[];
 }> {
   const result = {
     success: true,
     pagedjs: { build: false, convert: false, compliant: false, tacValidation: undefined as TACValidationResult | undefined },
     vivliostyle: { build: false, convert: false, compliant: false, tacValidation: undefined as TACValidationResult | undefined },
+    weasyprint: { build: false, convert: false, compliant: false, tacValidation: undefined as TACValidationResult | undefined },
     errors: [] as string[],
   };
 
@@ -206,6 +214,28 @@ async function processBatch(options: BatchOptions): Promise<{
     }
   }
 
+  // Step 2.5: Build with WeasyPrint
+  if (!options.skipWeasyPrint) {
+    console.log(`\n${"─".repeat(40)}`);
+    console.log(`Building with WeasyPrint`);
+    console.log(`${"─".repeat(40)}`);
+
+    try {
+      const wpResult = await buildWithWeasyPrint({
+        input: actualHtmlPath,
+        output: join(outputDir, "weasyprint-output.pdf"),
+        timeout: 120000,
+        mediaType: "print",
+      });
+      result.weasyprint.build = wpResult.success;
+      if (!wpResult.success && wpResult.error) {
+        result.errors.push(`WeasyPrint build: ${wpResult.error}`);
+      }
+    } catch (e) {
+      result.errors.push(`WeasyPrint build exception: ${e}`);
+    }
+  }
+
   // Step 3: Convert to PDF/X
   if (!options.skipConvert) {
     console.log(`\n${"─".repeat(40)}`);
@@ -245,6 +275,24 @@ async function processBatch(options: BatchOptions): Promise<{
         }
       } catch (e) {
         result.errors.push(`Vivliostyle convert exception: ${e}`);
+      }
+    }
+
+    // Convert WeasyPrint output
+    const wpPdf = join(outputDir, "weasyprint-output.pdf");
+    if (existsSync(wpPdf)) {
+      try {
+        const wpConvert = await convertToPdfx({
+          input: wpPdf,
+          output: join(outputDir, "weasyprint-pdfx.pdf"),
+          title: `WeasyPrint - ${basename(inputDir)}`,
+        });
+        result.weasyprint.convert = wpConvert.success;
+        if (!wpConvert.success && wpConvert.error) {
+          result.errors.push(`WeasyPrint convert: ${wpConvert.error}`);
+        }
+      } catch (e) {
+        result.errors.push(`WeasyPrint convert exception: ${e}`);
       }
     }
 
@@ -308,6 +356,34 @@ async function processBatch(options: BatchOptions): Promise<{
         console.log(`   ⚠️  TAC validation skipped: ${e}`);
       }
     }
+
+    // Validate WeasyPrint PDF/X output
+    const wpPdfx = join(outputDir, "weasyprint-pdfx.pdf");
+    if (existsSync(wpPdfx)) {
+      try {
+        console.log(`\n🔍 Checking WeasyPrint PDF/X...`);
+        const tacResult = await validateTAC(wpPdfx);
+        result.weasyprint.tacValidation = tacResult;
+
+        // Log summary
+        console.log(`   ${tacResult.summary}`);
+
+        // Warn if TAC exceeds limit
+        if (tacResult.pagesOverLimit.length > 0) {
+          console.log(`   ❌ TAC validation failed: ${tacResult.maxTAC.toFixed(1)}% exceeds 240%`);
+          console.log(`   📄 Pages over limit: ${tacResult.pagesOverLimit.join(", ")}`);
+          for (const rec of tacResult.recommendations.slice(0, 3)) {
+            console.log(`   💡 ${rec}`);
+          }
+          // Don't fail the build, just warn
+          result.errors.push(`WeasyPrint TAC: ${tacResult.pagesOverLimit.length} page(s) exceed 240% limit`);
+        } else if (tacResult.pagesWithWarnings.length > 0) {
+          console.log(`   ⚠️  ${tacResult.pagesWithWarnings.length} page(s) in warning zone (200-240% TAC)`);
+        }
+      } catch (e) {
+        console.log(`   ⚠️  TAC validation skipped: ${e}`);
+      }
+    }
   }
 
   // Step 4: Validate and Compare
@@ -339,7 +415,8 @@ async function processBatch(options: BatchOptions): Promise<{
   result.success =
     result.errors.length === 0 &&
     (result.pagedjs.build || options.skipPagedJS) &&
-    (result.vivliostyle.build || options.skipVivliostyle);
+    (result.vivliostyle.build || options.skipVivliostyle) &&
+    (result.weasyprint.build || options.skipWeasyPrint);
 
   // Print summary
   console.log(`\n${"=".repeat(60)}`);
@@ -357,12 +434,21 @@ async function processBatch(options: BatchOptions): Promise<{
   const vsCompliantStatus =
     options.skipCompare ? "⏭️" : result.vivliostyle.compliant ? "✅" : "❌";
 
-  console.log(`PagedJS Build:     ${pjBuildStatus}`);
-  console.log(`PagedJS PDF/X:     ${pjConvertStatus}`);
-  console.log(`PagedJS Compliant: ${pjCompliantStatus}`);
-  console.log(`Vivliostyle Build: ${vsBuildStatus}`);
-  console.log(`Vivliostyle PDF/X: ${vsConvertStatus}`);
+  const wpBuildStatus = options.skipWeasyPrint ? "⏭️" : result.weasyprint.build ? "✅" : "❌";
+  const wpConvertStatus =
+    options.skipWeasyPrint || options.skipConvert ? "⏭️" : result.weasyprint.convert ? "✅" : "❌";
+  const wpCompliantStatus =
+    options.skipCompare ? "⏭️" : result.weasyprint.compliant ? "✅" : "❌";
+
+  console.log(`PagedJS Build:      ${pjBuildStatus}`);
+  console.log(`PagedJS PDF/X:      ${pjConvertStatus}`);
+  console.log(`PagedJS Compliant:  ${pjCompliantStatus}`);
+  console.log(`Vivliostyle Build:  ${vsBuildStatus}`);
+  console.log(`Vivliostyle PDF/X:  ${vsConvertStatus}`);
   console.log(`Vivliostyle Compliant: ${vsCompliantStatus}`);
+  console.log(`WeasyPrint Build:   ${wpBuildStatus}`);
+  console.log(`WeasyPrint PDF/X:   ${wpConvertStatus}`);
+  console.log(`WeasyPrint Compliant: ${wpCompliantStatus}`);
 
   if (result.errors.length > 0) {
     console.log(`\nErrors:`);

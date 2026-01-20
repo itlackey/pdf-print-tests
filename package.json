@@ -1,11 +1,12 @@
 {
   "name": "pdfx-test-harness",
   "version": "1.0.0",
-  "description": "Test harness for comparing PagedJS and Vivliostyle PDF/X output",
+  "description": "Test harness for comparing PagedJS, Vivliostyle, and WeasyPrint PDF/X output",
   "type": "module",
   "scripts": {
     "build:pagedjs": "bun run scripts/build-pagedjs.ts",
     "build:vivliostyle": "bun run scripts/build-vivliostyle.ts",
+    "build:weasyprint": "bun run scripts/build-weasyprint.ts",
     "convert:pdfx": "bun run scripts/convert-pdfx.ts",
     "validate": "bun run scripts/validate-pdfs.ts",
     "compare": "bun run scripts/compare-pdfs.ts",

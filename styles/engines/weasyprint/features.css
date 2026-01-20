@@ -1,0 +1,467 @@
+/* ==========================================================================
+   WeasyPrint Engine-Specific Features
+   Advanced CSS Paged Media features that WeasyPrint excels at
+   ========================================================================== */
+
+/* ===== WEASYPRINT ADVANCED FEATURES ===== */
+
+/* Feature 1: PDF Bookmarks (Outline/TOC in PDF)
+   WeasyPrint generates PDF bookmarks from heading elements automatically
+   Control bookmark levels with -weasy-bookmark-level */
+
+h1 {
+  -weasy-bookmark-level: 1;
+  -weasy-bookmark-label: content();
+}
+
+h2 {
+  -weasy-bookmark-level: 2;
+  -weasy-bookmark-label: content();
+}
+
+h3 {
+  -weasy-bookmark-level: 3;
+  -weasy-bookmark-label: content();
+}
+
+h4 {
+  -weasy-bookmark-level: 4;
+  -weasy-bookmark-label: content();
+}
+
+/* Custom bookmark for sections */
+section[id] {
+  -weasy-bookmark-level: 1;
+  -weasy-bookmark-label: attr(data-chapter);
+}
+
+/* Feature 2: Cross-References with target-counter()
+   Link to page numbers dynamically */
+
+a.page-ref::after {
+  content: " (page " target-counter(attr(href url), page) ")";
+  color: #666;
+  font-style: italic;
+}
+
+/* Feature 3: Leaders (dots for table of contents)
+   Perfect for TOC entries connecting text to page numbers */
+
+.toc-entry {
+  display: block;
+  padding: 0.25em 0;
+}
+
+.toc-entry::before {
+  content: target-text(attr(href url));
+}
+
+.toc-entry::after {
+  content: leader(dotted) " " target-counter(attr(href url), page);
+  float: right;
+}
+
+/* Alternative leader styles */
+.toc-entry.solid-leader::after {
+  content: leader(solid) " " target-counter(attr(href url), page);
+}
+
+.toc-entry.space-leader::after {
+  content: leader(space) " " target-counter(attr(href url), page);
+}
+
+/* Feature 4: Named Strings for Running Headers
+   Extract content for use in page margins */
+
+h1 {
+  string-set: h1-text content();
+}
+
+h2 {
+  string-set: h2-text content(), chapter-title content();
+}
+
+/* Use named strings in page margins */
+@page :right {
+  @top-right {
+    content: string(chapter-title, first);
+    font-family: var(--font-serif, serif);
+    font-size: 8pt;
+    font-style: italic;
+    color: #666;
+  }
+}
+
+@page :left {
+  @top-left {
+    content: string(h1-text, first);
+    font-family: var(--font-serif, serif);
+    font-size: 8pt;
+    font-style: italic;
+    color: #666;
+  }
+}
+
+/* Feature 5: Multiple Named Strings
+   Extract different content types for headers/footers */
+
+.chapter-name {
+  string-set: chapter-name content();
+}
+
+.section-name {
+  string-set: section-name content();
+}
+
+.author-name {
+  string-set: author-name content();
+}
+
+/* Feature 6: Advanced Page Counters
+   Multiple counter types and styles */
+
+@page {
+  counter-increment: page;
+
+  @bottom-center {
+    content: counter(page);
+    font-family: var(--font-serif, serif);
+    font-size: 9pt;
+    color: #666;
+  }
+}
+
+/* Roman numerals for front matter */
+@page frontmatter {
+  counter-increment: frontmatter-page;
+
+  @bottom-center {
+    content: counter(frontmatter-page, lower-roman);
+  }
+}
+
+/* Letters for appendices */
+@page appendix {
+  counter-increment: appendix-page;
+
+  @bottom-center {
+    content: "A-" counter(appendix-page);
+  }
+}
+
+/* Feature 7: Page Margin Box Styling
+   WeasyPrint supports all 16 page margin boxes */
+
+@page {
+  /* Top margin boxes */
+  @top-left-corner { content: ""; }
+  @top-left { content: ""; }
+  @top-center { content: ""; }
+  @top-right { content: ""; }
+  @top-right-corner { content: ""; }
+
+  /* Bottom margin boxes */
+  @bottom-left-corner { content: ""; }
+  @bottom-left { content: ""; }
+  @bottom-center { content: counter(page); }
+  @bottom-right { content: ""; }
+  @bottom-right-corner { content: ""; }
+
+  /* Left margin boxes */
+  @left-top { content: ""; }
+  @left-middle { content: ""; }
+  @left-bottom { content: ""; }
+
+  /* Right margin boxes */
+  @right-top { content: ""; }
+  @right-middle { content: ""; }
+  @right-bottom { content: ""; }
+}
+
+/* Feature 8: Links and Anchors
+   Internal and external links with styling */
+
+a[href^="#"] {
+  color: #0066cc;
+  text-decoration: none;
+  border-bottom: 1px dotted #0066cc;
+}
+
+a[href^="http"]::after {
+  content: " ↗";
+  font-size: 0.8em;
+  color: #666;
+}
+
+/* Feature 9: Footnotes with footnote-call and footnote-marker
+   WeasyPrint supports CSS-based footnotes */
+
+.footnote-call {
+  counter-increment: footnote;
+  vertical-align: super;
+  font-size: 0.8em;
+  line-height: 0;
+}
+
+.footnote-call::before {
+  content: counter(footnote);
+}
+
+@page {
+  @footnote {
+    border-top: 0.5pt solid black;
+    padding-top: 0.5em;
+    margin-top: 1em;
+  }
+}
+
+.footnote {
+  float: footnote;
+  footnote-display: block;
+  font-size: 0.9em;
+  line-height: 1.4;
+}
+
+.footnote::footnote-marker {
+  content: counter(footnote) ". ";
+  font-weight: bold;
+}
+
+/* Feature 10: Fragmentation Control
+   Advanced page breaking with WeasyPrint's full support */
+
+/* Avoid breaking after headings */
+h1, h2, h3, h4, h5, h6 {
+  break-after: avoid;
+  page-break-after: avoid;
+}
+
+/* Keep with next sibling */
+h1 + p, h2 + p, h3 + p {
+  break-before: avoid;
+  page-break-before: avoid;
+}
+
+/* Control widows and orphans */
+p {
+  orphans: 3; /* Minimum lines at bottom of page */
+  widows: 3;  /* Minimum lines at top of page */
+}
+
+/* Feature 11: Hyphenation
+   WeasyPrint has excellent hyphenation support */
+
+p, li, td, th {
+  hyphens: auto;
+  hyphenate-character: "-";
+  hyphenate-limit-chars: 6 3 3; /* word min, before min, after min */
+  hyphenate-limit-lines: 2; /* Max consecutive lines with hyphens */
+  hyphenate-limit-zone: 8%; /* Hyphenation zone at line end */
+}
+
+/* Feature 12: PDF Attachments
+   Can be added programmatically via WeasyPrint API */
+
+/* Feature 13: Custom Counter Styles
+   Define custom counter formats */
+
+@counter-style custom-marker {
+  system: cyclic;
+  symbols: "★" "☆" "✦" "✧";
+  suffix: " ";
+}
+
+.custom-list {
+  list-style-type: custom-marker;
+}
+
+/* Feature 14: Multi-column Layouts
+   Better support than Chromium engines */
+
+.two-column {
+  column-count: 2;
+  column-gap: 1.5em;
+  column-rule: 1px solid #ddd;
+  column-fill: balance;
+}
+
+.three-column {
+  column-count: 3;
+  column-gap: 1em;
+  column-rule: 0.5pt solid #ccc;
+}
+
+/* Span across columns */
+.column-span {
+  column-span: all;
+  margin: 1em 0;
+  padding: 0.5em;
+  background: #f5f5f5;
+  border: 1px solid #ddd;
+}
+
+/* Feature 15: Tables with Header Repetition
+   Repeat thead on each page */
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+thead {
+  display: table-header-group; /* Repeat on each page */
+}
+
+tbody {
+  display: table-row-group;
+}
+
+tfoot {
+  display: table-footer-group; /* Repeat on each page */
+}
+
+/* Feature 16: Position: fixed for Page Overlays
+   Fixed elements appear on every page */
+
+.watermark {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-45deg);
+  font-size: 72pt;
+  color: rgba(0, 0, 0, 0.05);
+  z-index: -1;
+}
+
+/* Feature 17: Image Resolution and Sizing
+   WeasyPrint respects image DPI and sizing */
+
+img {
+  max-width: 100%;
+  height: auto;
+  image-rendering: auto;
+}
+
+/* Feature 18: SVG Support
+   Excellent SVG rendering in WeasyPrint */
+
+svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Feature 19: Advanced Selectors
+   Full CSS3 selector support */
+
+p:nth-of-type(3n) {
+  /* Every third paragraph */
+}
+
+section:has(> h2.important) {
+  /* Sections containing important headings */
+}
+
+/* Feature 20: Blend Modes and Filters
+   WeasyPrint supports CSS filters and blend modes */
+
+.blend-multiply {
+  mix-blend-mode: multiply;
+}
+
+.filter-sepia {
+  filter: sepia(0.8);
+}
+
+/* Feature 21: Transforms
+   2D transforms work well in WeasyPrint */
+
+.rotated-header {
+  transform: rotate(-90deg);
+  transform-origin: left bottom;
+}
+
+/* Feature 22: Gradients
+   Full gradient support including conic gradients */
+
+.gradient-bg {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.radial-gradient-bg {
+  background: radial-gradient(circle, #fff 0%, #f0f0f0 100%);
+}
+
+/* Feature 23: CSS Grid (Basic Support)
+   WeasyPrint has basic grid support */
+
+.basic-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1em;
+}
+
+/* Feature 24: Flexbox (Basic Support)
+   WeasyPrint has basic flexbox support */
+
+.basic-flex {
+  display: flex;
+  gap: 1em;
+  flex-wrap: wrap;
+}
+
+/* Feature 25: Custom Fonts with @font-face
+   Full web font support */
+
+@font-face {
+  font-family: "CustomFont";
+  src: url("fonts/custom.woff2") format("woff2"),
+       url("fonts/custom.woff") format("woff");
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* ===== WEASYPRINT STRENGTHS ===== */
+
+/*
+SUMMARY OF WEASYPRINT FEATURES:
+
+✅ EXCELLENT SUPPORT:
+- PDF Bookmarks (-weasy-bookmark-level)
+- Named Strings (string-set)
+- Cross-references (target-counter, target-text)
+- Leaders for TOC
+- All 16 page margin boxes
+- Hyphenation (best in class)
+- Multi-column layouts
+- Table header/footer repetition
+- Fragmentation control
+- Footnotes
+- Links and anchors
+- SVG rendering
+- CMYK color handling (better than Chromium)
+- CSS counters and custom counter styles
+- Position: fixed for watermarks
+
+✅ GOOD SUPPORT:
+- Basic Flexbox
+- Basic CSS Grid
+- CSS Transforms (2D)
+- Filters and blend modes
+- Gradients (all types)
+- @font-face web fonts
+
+❌ NOT SUPPORTED:
+- position: running() (use string-set instead)
+- env() variables (use hardcoded values)
+- Page floats (complex positioning)
+- JavaScript
+- Video/Audio
+- 3D transforms
+- Animations
+
+📚 DOCUMENTATION SOURCES:
+- Tips & Tricks: https://doc.courtbouillon.org/weasyprint/v52.5/tips-tricks.html
+- CSS Paged Media: https://docraptor.com/css-paged-media
+- Print CSS: https://print-css.rocks/
+
+*/
