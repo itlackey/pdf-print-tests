@@ -28,7 +28,7 @@ export async function buildWithVivliostyle(options: BuildOptions): Promise<{
   error?: string;
 }> {
   const startTime = performance.now();
-  const { input, output, timeout = 120000, size, theme, press = true } = options;
+  const { input, output, timeout = 120000, size, theme, press = false } = options;
 
   // Ensure output directory exists
   const outputDir = dirname(output);
@@ -80,11 +80,8 @@ export async function buildWithVivliostyle(options: BuildOptions): Promise<{
       args.push("--press-ready");
     }
 
-    // Sandbox flags for container environment
-    args.push(
-      "--browser-arg=--no-sandbox",
-      "--browser-arg=--disable-setuid-sandbox"
-    );
+    // Note: Vivliostyle CLI does not support --browser-arg flag
+    // The sandbox flags are handled internally by playwright
 
     // Run Vivliostyle CLI
     const result = await $`${args}`.quiet();
