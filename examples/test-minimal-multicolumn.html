@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Minimal Multi-column Test</title>
+  <style>
+    @page {
+      size: 6in 9in;
+      margin: 0.625in;
+    }
+
+    body {
+      font-family: Georgia, serif;
+      font-size: 10pt;
+      line-height: 1.5;
+    }
+
+    h1 {
+      color: #2c3e50;
+      margin-bottom: 0.25in;
+    }
+
+    /* Test 1: Basic two-column layout */
+    .test-basic-columns {
+      column-count: 2;
+      column-gap: 0.25in;
+      column-rule: 1pt solid #999;
+      margin-bottom: 0.5in;
+    }
+
+    /* Test 2: Column with span */
+    .test-column-span {
+      column-count: 2;
+      column-gap: 0.25in;
+    }
+
+    .span-all {
+      column-span: all;
+      background: #3498db;
+      color: white;
+      padding: 0.125in;
+      text-align: center;
+    }
+
+    /* Test 3: Nested column containers */
+    .outer-columns {
+      column-count: 2;
+      column-gap: 0.25in;
+    }
+
+    .inner-box {
+      background: #ecf0f1;
+      padding: 0.125in;
+      margin-bottom: 0.125in;
+    }
+  </style>
+</head>
+<body>
+  <h1>Multi-column Layout Test</h1>
+
+  <h2>Test 1: Basic Two Columns</h2>
+  <div class="test-basic-columns">
+    <p>This is the first paragraph of content that should flow across two columns. The column-count property controls the number of columns.</p>
+    <p>This is the second paragraph. Column rules can be styled with column-rule properties.</p>
+    <p>This is the third paragraph. Content automatically balances between columns.</p>
+  </div>
+
+  <h2>Test 2: Column Span</h2>
+  <div class="test-column-span">
+    <p>Regular column content flows here in two columns.</p>
+    <h3 class="span-all">This heading spans all columns</h3>
+    <p>Content continues after the spanning element in normal column flow.</p>
+  </div>
+
+  <h2>Test 3: Nested Containers</h2>
+  <div class="outer-columns">
+    <div class="inner-box">
+      <p><strong>Box 1:</strong> This is inside a nested container.</p>
+    </div>
+    <div class="inner-box">
+      <p><strong>Box 2:</strong> Another nested container.</p>
+    </div>
+    <div class="inner-box">
+      <p><strong>Box 3:</strong> Third nested container.</p>
+    </div>
+  </div>
+
+  <h2>Expected Behavior</h2>
+  <p>All three tests above should render visible content. If any section is blank, that indicates a multi-column rendering bug in Vivliostyle.</p>
+</body>
+</html>

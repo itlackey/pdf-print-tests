@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Minimal Counters Test</title>
+  <style>
+    @page {
+      size: 6in 9in;
+      margin: 0.625in;
+    }
+
+    body {
+      font-family: Georgia, serif;
+      font-size: 10pt;
+      line-height: 1.5;
+      counter-reset: section;
+    }
+
+    h1 {
+      color: #2c3e50;
+      margin-bottom: 0.25in;
+    }
+
+    /* Test 1: Simple counter */
+    .counter-demo {
+      counter-reset: item;
+    }
+
+    .counter-item {
+      counter-increment: item;
+    }
+
+    .counter-item::before {
+      content: "Item " counter(item) ": ";
+      font-weight: bold;
+      color: #3498db;
+    }
+
+    /* Test 2: Nested counters */
+    .nested-list {
+      counter-reset: level1;
+      list-style-type: none;
+      padding-left: 0;
+    }
+
+    .nested-list li {
+      counter-increment: level1;
+    }
+
+    .nested-list li::before {
+      content: counters(level1, ".") " ";
+      font-weight: bold;
+      color: #2c3e50;
+    }
+
+    .nested-list ol {
+      counter-reset: level1;
+      list-style-type: none;
+      padding-left: 0.25in;
+    }
+
+    /* Test 3: target-counter() */
+    .target-ref::after {
+      content: " (page " target-counter(attr(href), page) ")";
+      font-weight: bold;
+      color: #e74c3c;
+    }
+
+    /* Test 4: Page counter display */
+    .page-number::before {
+      content: "Current page: ";
+    }
+
+    .page-number::after {
+      content: counter(page);
+      font-weight: bold;
+    }
+
+    /* Target section */
+    .target-section {
+      background: #ecf0f1;
+      padding: 0.25in;
+      margin: 0.25in 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>CSS Counters Test</h1>
+
+  <h2>Test 1: Simple Counter</h2>
+  <div class="counter-demo">
+    <p class="counter-item">First numbered paragraph</p>
+    <p class="counter-item">Second numbered paragraph</p>
+    <p class="counter-item">Third numbered paragraph</p>
+  </div>
+
+  <h2>Test 2: Nested Counters</h2>
+  <ol class="nested-list">
+    <li>First level item
+      <ol>
+        <li>Second level item</li>
+        <li>Second level item
+          <ol>
+            <li>Third level item</li>
+            <li>Third level item</li>
+          </ol>
+        </li>
+      </ol>
+    </li>
+    <li>First level item</li>
+  </ol>
+
+  <h2>Test 3: target-counter() Function</h2>
+  <p>Reference to <a href="#target-section" class="target-ref">target section</a></p>
+  <p>Reference to <a href="#conclusion" class="target-ref">conclusion</a></p>
+
+  <div id="target-section" class="target-section">
+    <h3>Target Section</h3>
+    <p>This is the target section referenced above.</p>
+  </div>
+
+  <h2>Test 4: Page Counter</h2>
+  <p class="page-number"></p>
+
+  <div id="conclusion">
+    <h2>Expected Behavior</h2>
+    <p>All counters above should display properly. If content is blank or counters don't show, that indicates a counter rendering bug in Vivliostyle.</p>
+  </div>
+</body>
+</html>

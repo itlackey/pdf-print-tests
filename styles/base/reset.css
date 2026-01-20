@@ -1,0 +1,15 @@
+/* ==========================================================================
+   CSS RESET & BASE STYLES
+   Universal box-sizing, margin, padding reset
+   ========================================================================== */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+}

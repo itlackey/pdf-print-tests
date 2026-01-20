@@ -1,0 +1,440 @@
+/* ==========================================================================
+   VIVLIOSTYLE-SAFE VERSION - Kitchen Sink Stylesheet
+
+   This version replaces problematic CSS features with Vivliostyle-compatible
+   alternatives to prevent blank page rendering bugs.
+
+   CHANGES FROM ORIGINAL:
+   - Multi-column layouts replaced with float-based alternatives
+   - Flexbox replaced with inline-block/table layouts
+   - Grid replaced with table layouts
+   - Complex gradients simplified
+   - clip-path removed (use border-radius instead)
+   - text-emphasis removed
+   - Simplified box-shadow
+   ========================================================================== */
+
+/* Import base styles from original (through line 200) */
+@import url('kitchen-sink.css') layer(base);
+
+/* ==========================================================================
+   MULTI-COLUMN WORKAROUNDS
+   ========================================================================== */
+
+/* Replace column-count with float-based layout */
+.two-columns {
+  /* ORIGINAL: column-count: 2; */
+  display: block;
+}
+
+.two-columns p {
+  float: left;
+  width: calc(50% - 0.125in);
+  margin-right: 0.25in;
+}
+
+.two-columns p:nth-child(even) {
+  margin-right: 0;
+}
+
+.two-columns::after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+/* Column demo - use simple blocks */
+.column-demo > div {
+  /* Remove column properties */
+  column-count: unset !important;
+  column-width: unset !important;
+  column-gap: unset !important;
+  column-rule: unset !important;
+}
+
+/* Column span - just use full width block */
+.column-span-all {
+  /* ORIGINAL: column-span: all; */
+  width: 100%;
+  display: block;
+  background: var(--color-primary);
+  color: white;
+  padding: 0.125in;
+  text-align: center;
+  margin: 0.125in 0;
+}
+
+.span-demo {
+  /* ORIGINAL: column-count: 2; */
+  display: block;
+}
+
+.column-fill-demo {
+  /* ORIGINAL: column-count: 2; */
+  display: block;
+}
+
+/* Float values list - remove column layout */
+.float-values {
+  /* ORIGINAL: column-count: 2; */
+  display: block;
+}
+
+/* Table properties - remove column layout */
+.table-props {
+  /* ORIGINAL: column-count: 2; */
+  display: block;
+}
+
+/* SVG properties - remove column layout */
+.svg-props {
+  /* ORIGINAL: column-count: 2; */
+  display: block;
+}
+
+/* Verification note list - remove column layout */
+.verification-note ol {
+  /* ORIGINAL: column-count: 2; */
+  display: block;
+}
+
+/* ==========================================================================
+   FLEXBOX WORKAROUNDS
+   ========================================================================== */
+
+/* Replace flexbox with inline-block */
+.flex-container-demo {
+  /* ORIGINAL: display: flex; */
+  display: block;
+  text-align: center;
+}
+
+.flex-item {
+  /* ORIGINAL: flex: 1; */
+  display: inline-block;
+  width: 30%;
+  vertical-align: top;
+  margin: 0 1%;
+}
+
+/* Flex direction grid - use table layout */
+.flex-direction-grid {
+  /* ORIGINAL: display: grid; */
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+  border-spacing: 0.125in;
+}
+
+.flex-row, .flex-row-reverse, .flex-column {
+  /* ORIGINAL: display: flex; */
+  display: table-cell;
+  background: var(--color-light);
+  padding: 0.0625in;
+  min-height: 0.75in;
+}
+
+.flex-row span,
+.flex-row-reverse span,
+.flex-column span {
+  display: inline-block;
+  padding: 0.0625in;
+  background: var(--color-primary);
+  color: white;
+  font-size: 7pt;
+  margin: 0.03in;
+}
+
+/* Flex justify demo - use table layout */
+.flex-justify-demo {
+  /* ORIGINAL: display: grid; */
+  display: block;
+}
+
+.flex-justify-demo > div {
+  /* ORIGINAL: display: flex; */
+  display: block;
+  background: var(--color-light);
+  padding: 0.0625in;
+  margin-bottom: 0.0625in;
+}
+
+.justify-start span { float: left; }
+.justify-end span { float: right; }
+.justify-center { text-align: center; }
+.justify-center span { display: inline-block; }
+
+.flex-justify-demo::after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+/* Flex grow demo - use percentage widths */
+.flex-grow-demo {
+  /* ORIGINAL: display: flex; */
+  display: block;
+}
+
+.flex-grow-demo > div {
+  display: inline-block;
+  vertical-align: top;
+}
+
+.grow-1 {
+  /* ORIGINAL: flex-grow: 1; */
+  width: calc(25% - 0.05in);
+}
+
+.grow-2 {
+  /* ORIGINAL: flex-grow: 2; */
+  width: calc(50% - 0.05in);
+}
+
+/* ==========================================================================
+   GRID WORKAROUNDS
+   ========================================================================== */
+
+/* Replace grid with table layout */
+.color-grid,
+.background-demo,
+.bg-size-demo,
+.border-radius-demo,
+.shadow-demo,
+.transform-grid,
+.filter-grid,
+.object-fit-demo,
+.clip-demo,
+.clip-shapes,
+.summary-grid,
+.writing-mode-grid,
+.logical-margin-demo,
+.logical-padding-demo,
+.logical-border-demo {
+  /* ORIGINAL: display: grid; */
+  display: table;
+  width: 100%;
+  border-spacing: 0.125in;
+}
+
+.color-grid > div,
+.background-demo > div,
+.bg-size-demo > div,
+.border-radius-demo > div,
+.shadow-demo > div,
+.transform-grid > div,
+.filter-grid > div,
+.object-fit-demo > div,
+.clip-demo > div,
+.clip-shapes > div,
+.writing-mode-grid > div,
+.logical-margin-demo > div,
+.logical-padding-demo > div,
+.logical-border-demo > div {
+  display: table-cell;
+  width: 25%; /* 4 columns default */
+}
+
+.color-grid,
+.background-demo,
+.border-radius-demo,
+.transform-grid {
+  /* 4 columns */
+}
+
+.filter-grid,
+.bg-size-demo,
+.shadow-demo,
+.clip-shapes {
+  /* 3 columns */
+}
+
+.filter-grid > div,
+.bg-size-demo > div,
+.shadow-demo > div,
+.clip-shapes > div {
+  width: 33.333%;
+}
+
+.summary-grid,
+.writing-mode-grid,
+.logical-margin-demo,
+.logical-padding-demo,
+.logical-border-demo {
+  /* 2 columns */
+}
+
+.summary-grid > div,
+.logical-margin-demo > div,
+.logical-padding-demo > div,
+.logical-border-demo > div {
+  width: 50%;
+}
+
+.writing-mode-grid > div {
+  width: 33.333%;
+}
+
+/* Transform origin demo */
+.origin-demo,
+.blend-demo,
+.text-orientation-demo {
+  /* ORIGINAL: display: flex; */
+  display: block;
+}
+
+.origin-demo > div,
+.blend-demo > div,
+.text-orientation-demo > div {
+  display: inline-block;
+  margin: 0 0.125in 0 0;
+}
+
+/* ==========================================================================
+   CLIP-PATH WORKAROUNDS (Remove clipping)
+   ========================================================================== */
+
+/* Remove all clip-path properties - use border-radius instead */
+.clip-circle,
+.clip-ellipse,
+.clip-polygon,
+.clip-inset,
+.shape-triangle,
+.shape-pentagon,
+.shape-star {
+  /* ORIGINAL: clip-path: ... */
+  clip-path: none !important;
+  border-radius: 6pt; /* Simple rounded corners instead */
+}
+
+.clip-circle {
+  border-radius: 50%; /* Can still do circles with border-radius */
+}
+
+/* ==========================================================================
+   TEXT EFFECTS WORKAROUNDS
+   ========================================================================== */
+
+/* Remove text-emphasis (not well supported) */
+.emphasis-dot,
+.emphasis-circle,
+.emphasis-sesame {
+  /* ORIGINAL: text-emphasis: ... */
+  text-emphasis: none !important;
+  /* Add visual alternative - bold or color */
+  font-weight: bold;
+  color: var(--color-secondary);
+}
+
+/* ==========================================================================
+   VISUAL EFFECTS SIMPLIFICATION
+   ========================================================================== */
+
+/* Simplify complex gradients */
+.bg-multiple {
+  /* ORIGINAL: complex multi-layer gradient */
+  background: var(--color-primary);
+  /* Add diagonal stripe pattern as simple alternative */
+  background-image: repeating-linear-gradient(
+    45deg,
+    var(--color-primary),
+    var(--color-primary) 10px,
+    var(--color-accent) 10px,
+    var(--color-accent) 20px
+  );
+}
+
+/* Simplify multiple box-shadows */
+.shadow-multiple {
+  /* ORIGINAL: box-shadow: 2pt 2pt 4pt color1, -2pt -2pt 4pt color2; */
+  box-shadow: 3pt 3pt 6pt rgba(0,0,0,0.3);
+  border: 2pt solid var(--color-secondary);
+}
+
+/* ==========================================================================
+   TITLE PAGE FIX
+   ========================================================================== */
+
+/* Title page - ensure flexbox fallback */
+.title-page {
+  /* ORIGINAL: display: flex; */
+  display: table;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+}
+
+.title-content {
+  display: table-cell;
+  vertical-align: middle;
+  padding: 1in;
+}
+
+/* ==========================================================================
+   BLEND MODES (May not work in Vivliostyle)
+   ========================================================================== */
+
+/* Remove blend modes if they cause issues */
+.blend-multiply,
+.blend-screen,
+.blend-overlay {
+  /* ORIGINAL: mix-blend-mode: ... */
+  mix-blend-mode: normal !important;
+  /* Use opacity for visual variation instead */
+  opacity: 0.9;
+}
+
+/* ==========================================================================
+   TARGET-COUNTER WORKAROUND
+   ========================================================================== */
+
+/* If target-counter causes blank pages, remove it */
+.target-counter-ref::after {
+  /* ORIGINAL: content: target-counter(attr(href), page); */
+  content: "[see reference]";
+  font-weight: bold;
+  color: var(--color-accent);
+  font-size: 8pt;
+}
+
+/* ==========================================================================
+   PRINT OVERRIDES
+   ========================================================================== */
+
+@media print {
+  /* Ensure colors print */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Disable any transforms that might cause issues */
+  .rotate,
+  .scale,
+  .skew,
+  .translate {
+    transform: none !important;
+  }
+}
+
+/* ==========================================================================
+   NOTES
+   ========================================================================== */
+
+/*
+ * This stylesheet provides workarounds for Vivliostyle rendering bugs by:
+ *
+ * 1. Replacing CSS Grid with table layouts
+ * 2. Replacing Flexbox with inline-block/table layouts
+ * 3. Replacing multi-column with float-based layouts
+ * 4. Removing clip-path (using border-radius instead)
+ * 5. Removing text-emphasis marks
+ * 6. Simplifying complex gradients
+ * 7. Simplifying target-counter references
+ *
+ * To use this version:
+ * <link rel="stylesheet" href="kitchen-sink-vivliostyle-safe.css">
+ *
+ * For PagedJS (full features):
+ * <link rel="stylesheet" href="kitchen-sink.css">
+ */

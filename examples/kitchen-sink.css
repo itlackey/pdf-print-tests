@@ -22,8 +22,12 @@
   --margin-top: 0.625in;
   --margin-bottom: 0.75in;
   
-  /* Colors */
-  --color-primary: #2c3e50;
+  /* Colors - Optimized for print with reduced TAC */
+  /* Using CMYK values for print compliance */
+  /* Pure black CMYK(0,0,0,100) = 100% TAC for text and small elements */
+  --color-primary: #000000;  /* Will be converted for text - OK for small elements */
+  --color-primary-cmyk: device-cmyk(0 0 0 1);  /* Pure black for explicit CMYK */
+  --color-rich-black: device-cmyk(0.6 0.4 0.4 1);  /* Rich black: 240% TAC for large areas */
   --color-secondary: #3498db;
   --color-accent: #e74c3c;
   --color-success: #27ae60;
@@ -209,8 +213,14 @@ body {
   justify-content: center;
   align-items: center;
   text-align: center;
-  background: linear-gradient(180deg, var(--color-primary) 0%, #1a252f 100%);
-  color: white;
+  /* TAC-COMPLIANT: Using very light pastel colors */
+  /* Chromium's black generation is extremely aggressive */
+  /* Only very light colors (RGB > 200) avoid 400% TAC */
+  background: linear-gradient(180deg,
+    #b8cfe5 0%,    /* Light pastel blue: RGB(184,207,229) */
+    #a0b8d0 50%,   /* Medium pastel blue: RGB(160,184,208) */
+    #88a0bb 100%); /* Darker pastel blue: RGB(136,160,187) */
+  color: #1a1a1a; /* Dark gray text instead of white */
 }
 
 .title-content {
@@ -557,7 +567,8 @@ em {
 
 .column-span-all {
   column-span: all;
-  background: var(--color-primary);
+  /* Use CMYK rich black for large background area */
+  background: var(--color-rich-black);
   color: white;
   padding: 0.125in;
   text-align: center;
@@ -634,7 +645,8 @@ em {
   float: left;
   width: 1in;
   padding: 0.125in;
-  background: var(--color-primary);
+  /* Use CMYK pure black for small box */
+  background: var(--color-primary-cmyk);
   color: white;
   font-size: 8pt;
   margin-right: 0.125in;
@@ -793,7 +805,8 @@ em {
 
 .flex-direction-grid span {
   padding: 0.0625in;
-  background: var(--color-primary);
+  /* Use CMYK pure black for small elements */
+  background: var(--color-primary-cmyk);
   color: white;
   font-size: 7pt;
   margin: 0.03in;
@@ -831,7 +844,8 @@ em {
 
 .flex-grow-demo > div {
   padding: 0.125in;
-  background: var(--color-primary);
+  /* Use CMYK pure black for small boxes */
+  background: var(--color-primary-cmyk);
   color: white;
   text-align: center;
   font-size: 8pt;
@@ -898,7 +912,8 @@ em {
 
 .filter-box {
   padding: 0.125in;
-  background: var(--color-primary);
+  /* Use CMYK pure black for small boxes */
+  background: var(--color-primary-cmyk);
   color: white;
   text-align: center;
   font-size: 8pt;
@@ -1083,13 +1098,17 @@ em {
   text-shadow: 1px 1px 2px black;
 }
 
-.bg-color { background-color: var(--color-primary); }
+.bg-color {
+  /* Use CMYK rich black for large background demo */
+  background-color: var(--color-rich-black);
+}
 .bg-gradient { background: linear-gradient(135deg, var(--color-secondary), var(--color-accent)); }
 .bg-radial { background: radial-gradient(circle, var(--color-success), var(--color-primary)); }
-.bg-multiple { 
-  background: 
+.bg-multiple {
+  background:
     linear-gradient(45deg, transparent 40%, var(--color-accent) 40%, var(--color-accent) 60%, transparent 60%),
-    var(--color-primary);
+    /* Use CMYK rich black for background layer */
+    var(--color-rich-black);
 }
 
 .bg-size-demo {
@@ -1189,7 +1208,8 @@ em {
 }
 
 .styled-table th {
-  background: var(--color-primary);
+  /* Use CMYK pure black for table headers */
+  background: var(--color-primary-cmyk);
   color: white;
 }
 
@@ -1421,7 +1441,8 @@ em {
 }
 
 .verification-note {
-  background: var(--color-primary);
+  /* Use CMYK rich black for large background area */
+  background: var(--color-rich-black);
   color: white;
   padding: 0.25in;
   border-radius: 3pt;

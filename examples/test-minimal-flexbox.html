@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Minimal Flexbox Test</title>
+  <style>
+    @page {
+      size: 6in 9in;
+      margin: 0.625in;
+    }
+
+    body {
+      font-family: Georgia, serif;
+      font-size: 10pt;
+      line-height: 1.5;
+    }
+
+    h1 {
+      color: #2c3e50;
+      margin-bottom: 0.25in;
+    }
+
+    /* Test 1: Basic flex container */
+    .test-basic-flex {
+      display: flex;
+      gap: 0.125in;
+      margin-bottom: 0.5in;
+      background: #ecf0f1;
+      padding: 0.125in;
+    }
+
+    .flex-item {
+      flex: 1;
+      padding: 0.125in;
+      background: #3498db;
+      color: white;
+      text-align: center;
+    }
+
+    /* Test 2: Flex direction */
+    .test-flex-row {
+      display: flex;
+      flex-direction: row;
+      gap: 0.125in;
+      margin-bottom: 0.25in;
+    }
+
+    .test-flex-column {
+      display: flex;
+      flex-direction: column;
+      gap: 0.125in;
+      margin-bottom: 0.5in;
+      height: 2in;
+    }
+
+    .box {
+      padding: 0.125in;
+      background: #2c3e50;
+      color: white;
+      text-align: center;
+    }
+
+    /* Test 3: Justify content */
+    .test-justify {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.25in;
+      background: #ecf0f1;
+      padding: 0.125in;
+    }
+
+    /* Test 4: Grid (for comparison) */
+    .test-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.125in;
+      margin-bottom: 0.5in;
+    }
+
+    .grid-item {
+      padding: 0.125in;
+      background: #e74c3c;
+      color: white;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <h1>Flexbox Layout Test</h1>
+
+  <h2>Test 1: Basic Flex Container</h2>
+  <div class="test-basic-flex">
+    <div class="flex-item">Item 1</div>
+    <div class="flex-item">Item 2</div>
+    <div class="flex-item">Item 3</div>
+  </div>
+
+  <h2>Test 2: Flex Direction Row</h2>
+  <div class="test-flex-row">
+    <div class="box">Box 1</div>
+    <div class="box">Box 2</div>
+    <div class="box">Box 3</div>
+  </div>
+
+  <h2>Test 3: Flex Direction Column</h2>
+  <div class="test-flex-column">
+    <div class="box">Box A</div>
+    <div class="box">Box B</div>
+    <div class="box">Box C</div>
+  </div>
+
+  <h2>Test 4: Justify Content (space-between)</h2>
+  <div class="test-justify">
+    <div class="box">Left</div>
+    <div class="box">Center</div>
+    <div class="box">Right</div>
+  </div>
+
+  <h2>Test 5: Grid Layout</h2>
+  <div class="test-grid">
+    <div class="grid-item">1</div>
+    <div class="grid-item">2</div>
+    <div class="grid-item">3</div>
+  </div>
+
+  <h2>Expected Behavior</h2>
+  <p>All five tests above should render visible content with proper flexbox/grid layout. If any section is blank, that indicates a flexbox rendering bug in Vivliostyle.</p>
+</body>
+</html>

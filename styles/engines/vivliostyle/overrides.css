@@ -1,0 +1,14 @@
+/* ==========================================================================
+   VIVLIOSTYLE ENGINE OVERRIDES
+   Vivliostyle-specific workarounds and fixes for known issues
+   ========================================================================== */
+
+/* Vivliostyle-specific fixes go here */
+
+/* Vivliostyle-specific media query */
+@media vivliostyle {
+  /* Vivliostyle-specific adjustments if needed */
+}
+
+/* Example: Vivliostyle may handle certain features differently
+   Add workarounds as they are discovered during testing */

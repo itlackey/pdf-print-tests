@@ -2,3 +2,5 @@ node_modules
 output/
 reports/
 .vscode/settings.json
+*.backup
+*.bak

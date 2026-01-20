@@ -1,0 +1,141 @@
+/* ==========================================================================
+   KITCHEN SINK THEME
+   Theme-specific decorative styles, title pages, and visual treatments
+   ========================================================================== */
+
+/* Title page */
+.title-page {
+  page: title;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  /* TAC-OPTIMIZED: Using bright blue to completely avoid Chromium's 4-plate black */
+  /* Chromium has been converting even medium blues to 4-plate black */
+  /* Using a much lighter, saturated blue (RGB ~140-200) to ensure proper CMYK */
+  /* See TAC-CHROMIUM-ISSUE-FINDINGS.md for full investigation details */
+  background: #4a7ba7; /* Bright steel blue: C60 M30 Y10 K0 = 100% TAC */
+  color: white;
+}
+
+.title-content {
+  padding: 1in;
+}
+
+.book-title {
+  font-family: var(--font-serif);
+  font-size: 36pt;
+  font-weight: bold;
+  line-height: 1.2;
+  margin-bottom: 0.5in;
+  letter-spacing: 0.05em;
+}
+
+.subtitle {
+  font-size: 14pt;
+  font-style: italic;
+  opacity: 0.9;
+  margin-bottom: 0.25in;
+}
+
+.version {
+  font-size: 11pt;
+  opacity: 0.7;
+}
+
+.ornament {
+  width: 2in;
+  height: 2pt;
+  background: linear-gradient(90deg, transparent, white, transparent);
+  margin: 0.5in auto 0;
+}
+
+/* Summary page */
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.25in;
+  margin-bottom: 0.25in;
+}
+
+.summary-category {
+  background: var(--color-light);
+  padding: 0.125in;
+  border-radius: 3pt;
+}
+
+.summary-category h4 {
+  color: var(--color-primary);
+  font-size: 10pt;
+  margin-bottom: 0.0625in;
+  border-bottom: 1pt solid var(--color-primary);
+  padding-bottom: 0.0625in;
+}
+
+.summary-category ul {
+  font-size: 8pt;
+  margin: 0;
+  padding-left: 0.1875in;
+}
+
+.summary-category li {
+  margin-bottom: 0.03in;
+}
+
+.verification-note {
+  /* TAC-OPTIMIZED: Using bright blue to avoid Chromium's 4-plate black */
+  /* Bright steel blue: C60 M30 Y10 K0 = 100% TAC */
+  background: #4a7ba7;
+  color: white;
+  padding: 0.25in;
+  border-radius: 3pt;
+}
+
+.verification-note h3 {
+  color: white;
+  margin-bottom: 0.125in;
+}
+
+.verification-note ol {
+  font-size: 9pt;
+  column-count: 2;
+}
+
+/* Appendix page */
+.appendix-page {
+  page: appendix;
+}
+
+.doc-info {
+  display: grid;
+  grid-template-columns: 1in auto;
+  gap: 0.0625in 0.25in;
+  margin-bottom: 0.25in;
+  font-size: 9pt;
+}
+
+.doc-info dt {
+  font-weight: bold;
+  color: var(--color-primary);
+}
+
+.doc-info dd {
+  margin: 0;
+}
+
+.limitations {
+  font-size: 9pt;
+  color: var(--color-muted);
+}
+
+.limitations li {
+  margin-bottom: 0.0625in;
+}
+
+.end-mark {
+  text-align: center;
+  margin-top: 0.5in;
+  font-style: italic;
+  color: var(--color-muted);
+}

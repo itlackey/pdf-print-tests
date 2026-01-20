@@ -1,0 +1,37 @@
+/* ==========================================================================
+   CSS VARIABLES
+   Root-level custom properties for consistency across the project
+   ========================================================================== */
+
+:root {
+  /* Physical dimensions */
+  --trim-width: 6in;
+  --trim-height: 9in;
+  --bleed: 0.125in;
+  --page-width: calc(var(--trim-width) + var(--bleed) * 2);
+  --page-height: calc(var(--trim-height) + var(--bleed) * 2);
+
+  /* Margins */
+  --margin-inside: 0.625in;
+  --margin-outside: 0.5in;
+  --margin-top: 0.625in;
+  --margin-bottom: 0.75in;
+
+  /* Colors */
+  --color-primary: #2c3e50;
+  --color-secondary: #3498db;
+  --color-accent: #e74c3c;
+  --color-success: #27ae60;
+  --color-warning: #f39c12;
+  --color-text: #333333;
+  --color-muted: #7f8c8d;
+  --color-light: #ecf0f1;
+  --color-paper: #fffef8;
+
+  /* Typography */
+  --font-serif: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+  --font-sans: 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'Courier New', Courier, monospace;
+  --font-size-base: 10pt;
+  --line-height-base: 1.5;
+}

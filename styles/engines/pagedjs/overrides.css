@@ -1,0 +1,65 @@
+/* ==========================================================================
+   PAGEDJS ENGINE OVERRIDES
+   PagedJS-specific workarounds and fixes for known issues
+   ========================================================================== */
+
+/* ========================================================================
+   RUNNING HEADERS FIX
+   PagedJS doesn't support env(pub-title), so we use string-set instead
+   ======================================================================== */
+
+/* Set publication title from the first .running-title element on the title page
+   The HTML structure is:
+   <section class="page title-page">
+     <header class="running-header">
+       <span class="running-title">Vivliostyle Kitchen Sink</span>
+
+   We need to set pubTitle only from the title page's .running-title,
+   not from chapter .running-title elements which set chapterTitle */
+.title-page .running-title {
+  string-set: pubTitle content();
+}
+
+/* Override chapter title to use .running-title content instead of data-chapter attr
+   The base CSS has both rules:
+     .running-title { string-set: chapterTitle content(); }
+     [data-chapter] { string-set: chapterTitle attr(data-chapter); }
+
+   In the base CSS, [data-chapter] comes last and wins (sets "Values").
+   Vivliostyle seems to prefer .running-title content (shows "CSS Values").
+   We override here to match Vivliostyle's behavior. */
+.content-page .running-title {
+  string-set: chapterTitle content();
+}
+
+/* Override @page :left to use string() instead of env() */
+@page :left {
+  @top-left {
+    content: string(pubTitle);
+    font-family: var(--font-serif);
+    font-size: 8pt;
+    font-style: italic;
+    color: var(--color-muted);
+  }
+}
+
+/* Ensure title page has no running headers */
+@page title {
+  @top-left { content: none; }
+  @top-right { content: none; }
+}
+
+/* First page should also have no running headers */
+@page :first {
+  @top-left { content: none; }
+  @top-right { content: none; }
+}
+
+/* ========================================================================
+   OTHER PAGEDJS FIXES
+   ======================================================================== */
+
+/* Vivliostyle-specific media query should be ignored by PagedJS */
+@media vivliostyle {
+  /* This block should have no effect in PagedJS */
+}

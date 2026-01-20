@@ -5,12 +5,48 @@
  */
 
 import { $ } from "bun";
-import { existsSync, mkdirSync, readdirSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
+
+/**
+ * Concatenate CSS files for PagedJS build
+ * Order: variables -> base -> common -> engine-specific -> theme
+ */
+function concatenateCSS(outputPath: string): string {
+  const stylesDir = join(ROOT, "styles");
+  const cssFiles = [
+    // Variables first (CSS custom properties)
+    join(stylesDir, "common/variables.css"),
+    // Base styles
+    join(stylesDir, "base/reset.css"),
+    join(stylesDir, "base/typography.css"),
+    join(stylesDir, "base/print-base.css"),
+    // Common styles
+    join(stylesDir, "common/layout.css"),
+    join(stylesDir, "common/components.css"),
+    // PagedJS engine-specific
+    join(stylesDir, "engines/pagedjs/overrides.css"),
+    join(stylesDir, "engines/pagedjs/features.css"),
+    // Theme
+    join(stylesDir, "themes/kitchen-sink.css"),
+  ];
+
+  const concatenated = cssFiles
+    .filter((file) => existsSync(file))
+    .map((file) => {
+      const content = readFileSync(file, "utf-8");
+      return `/* Source: ${file.replace(ROOT, "")} */\n${content}\n`;
+    })
+    .join("\n");
+
+  writeFileSync(outputPath, concatenated, "utf-8");
+  console.log(`   📦 Concatenated ${cssFiles.length} CSS files -> ${outputPath}`);
+  return outputPath;
+}
 
 interface BuildOptions {
   input: string;
@@ -55,6 +91,10 @@ export async function buildWithPagedJS(options: BuildOptions): Promise<{
   console.log(`   Output: ${output}`);
 
   try {
+    // Concatenate CSS files for PagedJS
+    const tempCSSPath = join(outputDir, "pagedjs-styles.css");
+    const concatenatedCSS = concatenateCSS(tempCSSPath);
+
     // Build pagedjs-cli command
     const args = [
       "npx",
@@ -66,6 +106,8 @@ export async function buildWithPagedJS(options: BuildOptions): Promise<{
       String(timeout),
       "--browserArgs",
       "--no-sandbox,--disable-setuid-sandbox",
+      "--style",
+      concatenatedCSS,
     ];
 
     if (additionalStyles) {

@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Minimal Visual Effects Test</title>
+  <style>
+    @page {
+      size: 6in 9in;
+      margin: 0.625in;
+    }
+
+    body {
+      font-family: Georgia, serif;
+      font-size: 10pt;
+      line-height: 1.5;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    h1 {
+      color: #2c3e50;
+      margin-bottom: 0.25in;
+    }
+
+    /* Test 1: Gradients */
+    .test-linear-gradient {
+      height: 1in;
+      background: linear-gradient(135deg, #3498db, #e74c3c);
+      margin-bottom: 0.25in;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+    }
+
+    .test-radial-gradient {
+      height: 1in;
+      background: radial-gradient(circle, #27ae60, #2c3e50);
+      margin-bottom: 0.5in;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+    }
+
+    /* Test 2: Border radius */
+    .test-border-radius {
+      padding: 0.25in;
+      background: #3498db;
+      color: white;
+      border-radius: 12pt;
+      margin-bottom: 0.25in;
+    }
+
+    /* Test 3: Box shadow */
+    .test-box-shadow {
+      padding: 0.25in;
+      background: white;
+      border: 1pt solid #ddd;
+      box-shadow: 3pt 3pt 6pt rgba(0,0,0,0.3);
+      margin-bottom: 0.25in;
+    }
+
+    .test-multiple-shadows {
+      padding: 0.25in;
+      background: white;
+      box-shadow:
+        2pt 2pt 4pt #3498db,
+        -2pt -2pt 4pt #e74c3c;
+      margin-bottom: 0.5in;
+    }
+
+    /* Test 4: Clip path */
+    .test-clip-path {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.125in;
+      margin-bottom: 0.5in;
+    }
+
+    .clip-box {
+      height: 0.75in;
+      background: #3498db;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 8pt;
+    }
+
+    .clip-circle {
+      clip-path: circle(40%);
+    }
+
+    .clip-ellipse {
+      clip-path: ellipse(45% 35%);
+    }
+
+    .clip-polygon {
+      clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+    }
+
+    .clip-inset {
+      clip-path: inset(10% 10% 10% 10% round 5pt);
+    }
+
+    /* Test 5: Border image */
+    .test-border-image {
+      padding: 0.25in;
+      border: 8pt solid transparent;
+      border-image: linear-gradient(45deg, #3498db, #e74c3c) 1;
+      margin-bottom: 0.5in;
+    }
+
+    /* Test 6: Text effects */
+    .test-text-shadow {
+      font-size: 18pt;
+      text-shadow: 2pt 2pt 4pt rgba(0,0,0,0.3);
+      margin-bottom: 0.25in;
+    }
+
+    .test-text-emphasis {
+      text-emphasis: dot;
+      text-emphasis-position: over;
+      margin-bottom: 0.5in;
+    }
+  </style>
+</head>
+<body>
+  <h1>Visual Effects Test</h1>
+
+  <h2>Test 1: Linear Gradient</h2>
+  <div class="test-linear-gradient">
+    Linear Gradient Background
+  </div>
+
+  <h2>Test 2: Radial Gradient</h2>
+  <div class="test-radial-gradient">
+    Radial Gradient Background
+  </div>
+
+  <h2>Test 3: Border Radius</h2>
+  <div class="test-border-radius">
+    This box has rounded corners (border-radius: 12pt)
+  </div>
+
+  <h2>Test 4: Box Shadow (Single)</h2>
+  <div class="test-box-shadow">
+    This box has a drop shadow effect
+  </div>
+
+  <h2>Test 5: Box Shadow (Multiple)</h2>
+  <div class="test-multiple-shadows">
+    This box has multiple colored shadows
+  </div>
+
+  <h2>Test 6: Clip Path</h2>
+  <div class="test-clip-path">
+    <div class="clip-box clip-circle">circle</div>
+    <div class="clip-box clip-ellipse">ellipse</div>
+    <div class="clip-box clip-polygon">polygon</div>
+    <div class="clip-box clip-inset">inset</div>
+  </div>
+
+  <h2>Test 7: Border Image</h2>
+  <div class="test-border-image">
+    This box has a gradient border using border-image
+  </div>
+
+  <h2>Test 8: Text Shadow</h2>
+  <p class="test-text-shadow">This text has a shadow effect</p>
+
+  <h2>Test 9: Text Emphasis</h2>
+  <p class="test-text-emphasis">This text has emphasis marks above it</p>
+
+  <h2>Expected Behavior</h2>
+  <p>All visual effects above should render properly. If any section is blank or effects don't display, that indicates a visual rendering bug in Vivliostyle.</p>
+</body>
+</html>

@@ -5,12 +5,48 @@
  */
 
 import { $ } from "bun";
-import { existsSync, mkdirSync, readdirSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
+
+/**
+ * Concatenate CSS files for Vivliostyle build
+ * Order: variables -> base -> common -> engine-specific -> theme
+ */
+function concatenateCSS(outputPath: string): string {
+  const stylesDir = join(ROOT, "styles");
+  const cssFiles = [
+    // Variables first (CSS custom properties)
+    join(stylesDir, "common/variables.css"),
+    // Base styles
+    join(stylesDir, "base/reset.css"),
+    join(stylesDir, "base/typography.css"),
+    join(stylesDir, "base/print-base.css"),
+    // Common styles
+    join(stylesDir, "common/layout.css"),
+    join(stylesDir, "common/components.css"),
+    // Vivliostyle engine-specific
+    join(stylesDir, "engines/vivliostyle/overrides.css"),
+    join(stylesDir, "engines/vivliostyle/features.css"),
+    // Theme
+    join(stylesDir, "themes/kitchen-sink.css"),
+  ];
+
+  const concatenated = cssFiles
+    .filter((file) => existsSync(file))
+    .map((file) => {
+      const content = readFileSync(file, "utf-8");
+      return `/* Source: ${file.replace(ROOT, "")} */\n${content}\n`;
+    })
+    .join("\n");
+
+  writeFileSync(outputPath, concatenated, "utf-8");
+  console.log(`   📦 Concatenated ${cssFiles.length} CSS files -> ${outputPath}`);
+  return outputPath;
+}
 
 interface BuildOptions {
   input: string;
@@ -57,6 +93,10 @@ export async function buildWithVivliostyle(options: BuildOptions): Promise<{
   console.log(`   Output: ${output}`);
 
   try {
+    // Concatenate CSS files for Vivliostyle
+    const tempCSSPath = join(outputDir, "vivliostyle-styles.css");
+    const concatenatedCSS = concatenateCSS(tempCSSPath);
+
     // Build vivliostyle command
     const args = [
       "npx",
@@ -76,7 +116,10 @@ export async function buildWithVivliostyle(options: BuildOptions): Promise<{
       args.push("--size", size);
     }
 
-    // Add theme/stylesheet if specified
+    // Add concatenated theme/stylesheet
+    args.push("--theme", concatenatedCSS);
+
+    // Add additional theme/stylesheet if specified
     if (theme) {
       args.push("--theme", theme);
     }

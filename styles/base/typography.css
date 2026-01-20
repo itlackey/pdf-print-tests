@@ -1,0 +1,84 @@
+/* ==========================================================================
+   TYPOGRAPHY BASE STYLES
+   Font families, headings, paragraphs, text elements
+   ========================================================================== */
+
+body {
+  font-family: var(--font-serif);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-base);
+  color: var(--color-text);
+  background: white;
+  counter-reset: page chapter section figure table;
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+}
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-serif);
+  color: var(--color-primary);
+  page-break-after: avoid;
+  break-after: avoid;
+  margin-bottom: 0.125in;
+}
+
+h2 {
+  font-size: 18pt;
+  border-bottom: 2pt solid var(--color-primary);
+  padding-bottom: 0.0625in;
+  margin-bottom: 0.25in;
+  counter-increment: chapter;
+}
+
+h3 {
+  font-size: 12pt;
+  color: var(--color-secondary);
+  margin-top: 0.25in;
+}
+
+h4 {
+  font-size: 10pt;
+  margin-top: 0.1875in;
+}
+
+/* Paragraphs */
+p {
+  margin-bottom: 0.125in;
+  text-align: justify;
+  hyphens: auto;
+  orphans: 3;
+  widows: 3;
+}
+
+/* Inline text elements */
+code {
+  font-family: var(--font-mono);
+  font-size: 9pt;
+  background: var(--color-light);
+  padding: 0.02in 0.05in;
+  border-radius: 2pt;
+}
+
+a {
+  color: var(--color-secondary);
+  text-decoration: underline;
+}
+
+strong {
+  font-weight: bold;
+}
+
+em {
+  font-style: italic;
+}
+
+/* Lists */
+ul, ol {
+  margin-bottom: 0.125in;
+  padding-left: 0.25in;
+}
+
+li {
+  margin-bottom: 0.0625in;
+}

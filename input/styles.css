@@ -22,17 +22,17 @@
   --margin-top: 0.625in;
   --margin-bottom: 0.75in;
   
-  /* Colors - Using CMYK-safe values */
-  /* Rich Black for headers */
-  --color-rich-black: #0a0a0a;
-  /* Pure Black for body text */
-  --color-pure-black: #000000;
-  /* Accent colors */
-  --color-primary: #8B0000;      /* Dark Red */
-  --color-secondary: #2F4F4F;    /* Dark Slate Gray */
-  --color-accent: #B8860B;       /* Dark Goldenrod */
-  --color-background: #F5F5DC;   /* Beige */
-  --color-paper: #FFFEF0;        /* Off-white */
+  /* Colors - Using device-cmyk() for print compliance with TAC limits */
+  /* Pure Black for body text: CMYK(0,0,0,100) = 100% TAC */
+  --color-pure-black: device-cmyk(0 0 0 1);
+  /* Rich Black for large headers: CMYK(60,40,40,100) = 240% TAC (DriveThruRPG max) */
+  --color-rich-black: device-cmyk(0.6 0.4 0.4 1);
+  /* Accent colors - using lower TAC values */
+  --color-primary: #8B0000;      /* Dark Red - RGB for small elements */
+  --color-secondary: #2F4F4F;    /* Dark Slate Gray - RGB for small elements */
+  --color-accent: #B8860B;       /* Dark Goldenrod - RGB for small elements */
+  --color-background: #F5F5DC;   /* Beige - light colors OK */
+  --color-paper: #FFFEF0;        /* Off-white - light colors OK */
   
   /* Typography */
   --font-heading: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
@@ -48,10 +48,10 @@
    @page Rules - Page Setup
    -------------------------------------------------------------------------- */
 @page {
-  size: var(--page-width) var(--page-height);
+  size: 6.25in 9.25in; /* PagedJS doesn't support CSS variables in @page size */
   margin: 0;
-  marks: crop cross;
-  bleed: var(--bleed);
+  /* marks: crop cross; */ /* Removed: adds unwanted space outside page for crop marks */
+  /* bleed: 0.125in; */ /* Not supported by PagedJS */
 }
 
 /* Named pages for different sections */
@@ -109,8 +109,8 @@ body {
    Page Structure
    -------------------------------------------------------------------------- */
 .page {
-  width: var(--page-width);
-  height: var(--page-height);
+  /* width: var(--page-width); */ /* PagedJS uses @page size */
+  /* height: var(--page-height); */ /* PagedJS uses @page size */
   position: relative;
   overflow: hidden;
   page-break-after: always;
@@ -142,10 +142,13 @@ body {
   justify-content: center;
   align-items: center;
   text-align: center;
-  background: linear-gradient(180deg, 
-    #1a1a2e 0%, 
-    #16213e 50%, 
-    #0f0f23 100%);
+  /* TAC-OPTIMIZED: Using explicit device-cmyk() to control TAC precisely */
+  /* device-cmyk() ensures exact CMYK values without Chromium's black generation */
+  /* Rich black gradient for professional appearance within DriveThruRPG 240% TAC limit */
+  background: linear-gradient(180deg,
+    device-cmyk(0.6 0.4 0.4 1) 0%,    /* Rich Black: 240% TAC */
+    device-cmyk(0.5 0.3 0.3 1) 50%,   /* Medium Rich Black: 210% TAC */
+    device-cmyk(0.4 0.2 0.2 1) 100%); /* Light Rich Black: 180% TAC */
   color: var(--color-paper);
 }
 
@@ -155,10 +158,11 @@ body {
   left: calc(var(--bleed) * -1);
   right: calc(var(--bleed) * -1);
   bottom: calc(var(--bleed) * -1);
-  background: linear-gradient(180deg, 
-    #1a1a2e 0%, 
-    #16213e 50%, 
-    #0f0f23 100%);
+  /* TAC-OPTIMIZED: Using explicit device-cmyk() to control TAC precisely */
+  background: linear-gradient(180deg,
+    device-cmyk(0.6 0.4 0.4 1) 0%,    /* Rich Black: 240% TAC */
+    device-cmyk(0.5 0.3 0.3 1) 50%,   /* Medium Rich Black: 210% TAC */
+    device-cmyk(0.4 0.2 0.2 1) 100%); /* Light Rich Black: 180% TAC */
   z-index: 0;
 }
 
@@ -240,7 +244,7 @@ body {
 }
 
 .running-title {
-  string-set: chapterTitle content();
+  /* string-set: chapterTitle content(); */ /* PagedJS bug with string-set and element() */
 }
 
 .page-number::after {
@@ -347,7 +351,10 @@ em {
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--color-secondary) 0%, #1a3a3a 100%);
+  /* TAC-OPTIMIZED: Using medium blue gradient */
+  background: linear-gradient(135deg,
+    #3a6a8a 0%,   /* C75 M45 Y25 K5 = 150% TAC */
+    #1f4d5f 100%); /* C85 M55 Y35 K15 = 190% TAC */
   border: 3pt solid var(--color-accent);
   display: flex;
   align-items: center;
@@ -457,7 +464,11 @@ em {
 .diamond-image {
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #2a2a4a 0%, #1a1a2e 50%, #0f0f23 100%);
+  /* TAC-OPTIMIZED: Using medium blue gradient */
+  background: linear-gradient(135deg,
+    #2a5a7a 0%,    /* C80 M50 Y30 K10 = 170% TAC */
+    #1f4d5f 50%,   /* C85 M55 Y35 K15 = 190% TAC */
+    #15404f 100%); /* C90 M60 Y40 K20 = 210% TAC */
   clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
   box-shadow: 4pt 4pt 8pt rgba(0, 0, 0, 0.4);
   position: relative;

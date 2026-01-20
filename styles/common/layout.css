@@ -1,0 +1,325 @@
+/* ==========================================================================
+   LAYOUT SYSTEMS
+   Flexbox, Grid, Multi-column, Page structure
+   ========================================================================== */
+
+/* Page structure */
+.page {
+  width: var(--page-width);
+  height: var(--page-height);
+  position: relative;
+  overflow: hidden;
+  page-break-after: always;
+  break-after: page;
+  background: var(--color-paper);
+}
+
+.page:last-child {
+  page-break-after: auto;
+  break-after: auto;
+}
+
+.content-page {
+  page: content;
+  padding: calc(var(--margin-top) + var(--bleed))
+           calc(var(--margin-outside) + var(--bleed))
+           calc(var(--margin-bottom) + var(--bleed))
+           calc(var(--margin-inside) + var(--bleed));
+}
+
+/* Flexbox */
+.flex-container-demo {
+  display: flex;
+  gap: 0.125in;
+  margin-bottom: 0.25in;
+}
+
+.flex-item {
+  flex: 1;
+  padding: 0.25in;
+  background: var(--color-secondary);
+  color: white;
+  text-align: center;
+  font-weight: bold;
+}
+
+.flex-direction-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.125in;
+  margin-bottom: 0.25in;
+}
+
+.flex-row, .flex-row-reverse, .flex-column {
+  display: flex;
+  background: var(--color-light);
+  padding: 0.0625in;
+  min-height: 0.75in;
+}
+
+.flex-row { flex-direction: row; }
+.flex-row-reverse { flex-direction: row-reverse; }
+.flex-column { flex-direction: column; }
+
+.flex-direction-grid span {
+  padding: 0.0625in;
+  background: var(--color-primary);
+  color: white;
+  font-size: 7pt;
+  margin: 0.03in;
+}
+
+.flex-justify-demo {
+  display: grid;
+  gap: 0.0625in;
+  margin-bottom: 0.25in;
+}
+
+.flex-justify-demo > div {
+  display: flex;
+  background: var(--color-light);
+  padding: 0.0625in;
+}
+
+.justify-start { justify-content: flex-start; }
+.justify-center { justify-content: center; }
+.justify-end { justify-content: flex-end; }
+.justify-between { justify-content: space-between; }
+.justify-around { justify-content: space-around; }
+
+.flex-justify-demo span {
+  padding: 0.0625in;
+  background: var(--color-secondary);
+  color: white;
+  font-size: 8pt;
+}
+
+.flex-grow-demo {
+  display: flex;
+  gap: 0.0625in;
+}
+
+.flex-grow-demo > div {
+  padding: 0.125in;
+  background: var(--color-primary);
+  color: white;
+  text-align: center;
+  font-size: 8pt;
+}
+
+.grow-1 { flex-grow: 1; }
+.grow-2 { flex-grow: 2; }
+
+/* Multi-column layout */
+.two-columns {
+  column-count: 2;
+  column-gap: 0.25in;
+  column-rule: 1pt solid var(--color-muted);
+  margin-bottom: 0.25in;
+}
+
+.column-demo > div {
+  margin-bottom: 0.125in;
+  padding: 0.125in;
+  background: var(--color-light);
+}
+
+.col-width {
+  column-width: 2in;
+  column-count: auto;
+}
+
+.col-gap {
+  column-count: 2;
+  column-gap: 0.25in;
+}
+
+.col-rule {
+  column-count: 2;
+  column-rule: 1pt solid gray;
+}
+
+.span-demo {
+  column-count: 2;
+  column-gap: 0.25in;
+}
+
+.column-span-all {
+  column-span: all;
+  background: var(--color-primary);
+  color: white;
+  padding: 0.125in;
+  text-align: center;
+  margin: 0.125in 0;
+}
+
+.column-fill-demo {
+  column-count: 2;
+  column-fill: balance;
+}
+
+/* Fragmentation */
+.break-demo {
+  margin-bottom: 0.25in;
+}
+
+.break-inside-avoid {
+  break-inside: avoid;
+  background: var(--color-light);
+  padding: 0.125in;
+  border: 1pt solid var(--color-muted);
+}
+
+.orphans-widows-demo p {
+  orphans: 3;
+  widows: 3;
+}
+
+.box-decoration-demo {
+  margin-bottom: 0.25in;
+}
+
+.clone-demo {
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  background: linear-gradient(90deg, var(--color-secondary), var(--color-primary));
+  color: white;
+  padding: 0.0625in 0.125in;
+  border-radius: 3pt;
+}
+
+/* Page floats */
+.float-reference-demo {
+  position: relative;
+}
+
+.page-float-top {
+  float: block-start;
+  float-reference: page;
+  width: 2in;
+  padding: 0.125in;
+  background: var(--color-secondary);
+  color: white;
+  font-size: 8pt;
+  margin-bottom: 0.125in;
+}
+
+.float-values {
+  column-count: 2;
+}
+
+.clear-demo {
+  overflow: hidden;
+  margin-bottom: 0.25in;
+}
+
+.float-left-box {
+  float: left;
+  width: 1in;
+  padding: 0.125in;
+  background: var(--color-primary);
+  color: white;
+  font-size: 8pt;
+  margin-right: 0.125in;
+}
+
+.float-right-box {
+  float: right;
+  width: 1in;
+  padding: 0.125in;
+  background: var(--color-accent);
+  color: white;
+  font-size: 8pt;
+  margin-left: 0.125in;
+}
+
+.clear-both {
+  clear: both;
+  background: var(--color-light);
+  padding: 0.125in;
+}
+
+/* Footnotes */
+.footnote {
+  float: footnote;
+  font-size: 8pt;
+}
+
+::footnote-call {
+  content: counter(footnote);
+  font-size: 7pt;
+  vertical-align: super;
+  color: var(--color-secondary);
+}
+
+::footnote-marker {
+  content: counter(footnote) ". ";
+  font-weight: bold;
+}
+
+/* Logical properties */
+.logical-box {
+  background: var(--color-light);
+  padding: 0.125in;
+  margin-bottom: 0.25in;
+}
+
+.dimension-demo {
+  inline-size: 3in;
+  block-size: auto;
+  min-inline-size: 2in;
+  max-inline-size: 4in;
+}
+
+.logical-margin-demo, .logical-padding-demo, .logical-border-demo {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.125in;
+  margin-bottom: 0.25in;
+}
+
+.logical-margin-demo > div, .logical-padding-demo > div, .logical-border-demo > div {
+  background: var(--color-light);
+  padding: 0.125in;
+  font-size: 8pt;
+}
+
+.margin-block { margin-block: 0.25in; background: var(--color-secondary); color: white; }
+.margin-inline { margin-inline: 0.5in; }
+.margin-block-start { margin-block-start: 0.25in; }
+.margin-inline-end { margin-inline-end: 0.5in; }
+
+.padding-block { padding-block: 0.25in; }
+.padding-inline { padding-inline: 0.5in; }
+
+.border-block { border-block: 2pt solid var(--color-primary); }
+.border-inline { border-inline: 2pt dashed var(--color-secondary); }
+.border-block-start { border-block-start: 2pt solid var(--color-accent); }
+.border-inline-end { border-inline-end: 2pt dotted var(--color-success); }
+
+.inset-demo {
+  position: relative;
+  height: 1in;
+  background: var(--color-light);
+  margin-bottom: 0.25in;
+}
+
+.inset-demo > div {
+  position: absolute;
+  background: var(--color-secondary);
+  color: white;
+  padding: 0.0625in;
+  font-size: 7pt;
+}
+
+.inset-block {
+  inset-block: 0.125in;
+  inset-inline-start: 0;
+  inline-size: 1in;
+}
+
+.inset-inline {
+  inset-inline: 0.25in;
+  inset-block-start: 0;
+  block-size: 0.5in;
+}

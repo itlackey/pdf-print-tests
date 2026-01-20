@@ -9,6 +9,7 @@ import { existsSync, mkdirSync, readdirSync } from "node:fs";
 import { join, dirname, basename } from "node:path";
 import { fileURLToPath } from "node:url";
 import { validatePdf, type ValidationResult, type PdfInfo } from "./validate-pdfs.ts";
+import { validateTAC, type TACValidationResult } from "./validate-tac.ts";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
@@ -19,12 +20,14 @@ interface ComparisonReport {
   pagedjs: {
     rgb: ValidationResult | null;
     pdfx: ValidationResult | null;
+    tacValidation?: TACValidationResult | null;
     buildDuration?: number;
     convertDuration?: number;
   };
   vivliostyle: {
     rgb: ValidationResult | null;
     pdfx: ValidationResult | null;
+    tacValidation?: TACValidationResult | null;
     buildDuration?: number;
     convertDuration?: number;
   };
@@ -448,7 +451,94 @@ function generateMarkdownReport(report: ComparisonReport): string {
     }
   }
 
-  // Ink Coverage Detail
+  // TAC Validation Section
+  lines.push(`### TAC (Total Area Coverage) Validation`);
+  lines.push(``);
+
+  const pjTac = report.pagedjs.tacValidation;
+  const vsTac = report.vivliostyle.tacValidation;
+
+  if (pjTac || vsTac) {
+    lines.push(`| Metric | PagedJS | Vivliostyle | Limit |`);
+    lines.push(`|--------|---------|-------------|-------|`);
+
+    const pjMaxTac = pjTac ? `${pjTac.maxTAC.toFixed(1)}%` : "N/A";
+    const vsMaxTac = vsTac ? `${vsTac.maxTAC.toFixed(1)}%` : "N/A";
+    const pjMaxIcon = pjTac && pjTac.maxTAC > 240 ? "❌" : pjTac && pjTac.maxTAC > 200 ? "⚠️" : "✅";
+    const vsMaxIcon = vsTac && vsTac.maxTAC > 240 ? "❌" : vsTac && vsTac.maxTAC > 200 ? "⚠️" : "✅";
+    lines.push(`| Max TAC | ${pjMaxIcon} ${pjMaxTac} | ${vsMaxIcon} ${vsMaxTac} | ≤240% |`);
+
+    const pjAvgTac = pjTac ? `${pjTac.averageTAC.toFixed(1)}%` : "N/A";
+    const vsAvgTac = vsTac ? `${vsTac.averageTAC.toFixed(1)}%` : "N/A";
+    lines.push(`| Avg TAC | ${pjAvgTac} | ${vsAvgTac} | ≤200% |`);
+
+    const pjOverLimit = pjTac ? pjTac.pagesOverLimit.length : 0;
+    const vsOverLimit = vsTac ? vsTac.pagesOverLimit.length : 0;
+    const pjOverIcon = pjOverLimit > 0 ? "❌" : "✅";
+    const vsOverIcon = vsOverLimit > 0 ? "❌" : "✅";
+    lines.push(`| Pages >240% | ${pjOverIcon} ${pjOverLimit} | ${vsOverIcon} ${vsOverLimit} | 0 |`);
+
+    const pjWarnPages = pjTac ? pjTac.pagesWithWarnings.length : 0;
+    const vsWarnPages = vsTac ? vsTac.pagesWithWarnings.length : 0;
+    const pjWarnIcon = pjWarnPages > 0 ? "⚠️" : "✅";
+    const vsWarnIcon = vsWarnPages > 0 ? "⚠️" : "✅";
+    lines.push(`| Pages 200-240% | ${pjWarnIcon} ${pjWarnPages} | ${vsWarnIcon} ${vsWarnPages} | 0 |`);
+
+    lines.push(``);
+
+    // Add detailed page-by-page TAC if there are issues
+    if (pjOverLimit > 0 || vsOverLimit > 0 || pjWarnPages > 0 || vsWarnPages > 0) {
+      lines.push(`#### Pages Requiring Attention`);
+      lines.push(``);
+
+      if (pjOverLimit > 0) {
+        lines.push(`**PagedJS - Pages Over 240% TAC:**`);
+        lines.push(``);
+        const overPages = pjTac!.perPage.filter(p => p.status === "fail");
+        for (const p of overPages.slice(0, 10)) {
+          lines.push(`- Page ${p.page}: ${p.tac.toFixed(1)}% TAC`);
+          if (p.recommendation) {
+            lines.push(`  - ${p.recommendation}`);
+          }
+        }
+        if (overPages.length > 10) {
+          lines.push(`- ... and ${overPages.length - 10} more pages`);
+        }
+        lines.push(``);
+      }
+
+      if (vsOverLimit > 0) {
+        lines.push(`**Vivliostyle - Pages Over 240% TAC:**`);
+        lines.push(``);
+        const overPages = vsTac!.perPage.filter(p => p.status === "fail");
+        for (const p of overPages.slice(0, 10)) {
+          lines.push(`- Page ${p.page}: ${p.tac.toFixed(1)}% TAC`);
+          if (p.recommendation) {
+            lines.push(`  - ${p.recommendation}`);
+          }
+        }
+        if (overPages.length > 10) {
+          lines.push(`- ... and ${overPages.length - 10} more pages`);
+        }
+        lines.push(``);
+      }
+
+      if (pjWarnPages > 0 || vsWarnPages > 0) {
+        lines.push(`**Pages in Warning Zone (200-240% TAC):**`);
+        lines.push(``);
+
+        if (pjWarnPages > 0) {
+          lines.push(`- PagedJS: ${pjTac!.pagesWithWarnings.slice(0, 10).join(", ")}${pjWarnPages > 10 ? ` ... (${pjWarnPages} total)` : ""}`);
+        }
+        if (vsWarnPages > 0) {
+          lines.push(`- Vivliostyle: ${vsTac!.pagesWithWarnings.slice(0, 10).join(", ")}${vsWarnPages > 10 ? ` ... (${vsWarnPages} total)` : ""}`);
+        }
+        lines.push(``);
+      }
+    }
+  }
+
+  // Ink Coverage Detail (keep existing per-page table)
   lines.push(`### Ink Coverage by Page`);
   lines.push(``);
 
@@ -457,16 +547,24 @@ function generateMarkdownReport(report: ComparisonReport): string {
   const maxPages = Math.max(pjInk.length, vsInk.length);
 
   if (maxPages > 0) {
-    lines.push(`| Page | PagedJS TAC | Vivliostyle TAC | Limit |`);
-    lines.push(`|------|-------------|-----------------|-------|`);
+    lines.push(`| Page | PagedJS TAC | Vivliostyle TAC | Status |`);
+    lines.push(`|------|-------------|-----------------|--------|`);
 
     for (let i = 0; i < maxPages; i++) {
       const pj = pjInk[i];
       const vs = vsInk[i];
-      const pjTac = pj ? `${pj.tac.toFixed(1)}%` : "N/A";
-      const vsTac = vs ? `${vs.tac.toFixed(1)}%` : "N/A";
-      const limit = "≤240%";
-      lines.push(`| ${i + 1} | ${pjTac} | ${vsTac} | ${limit} |`);
+      const pjTacVal = pj ? pj.tac : 0;
+      const vsTacVal = vs ? vs.tac : 0;
+      const pjTacStr = pj ? `${pj.tac.toFixed(1)}%` : "N/A";
+      const vsTacStr = vs ? `${vs.tac.toFixed(1)}%` : "N/A";
+
+      // Determine status based on max TAC between both renderers
+      const maxTacForPage = Math.max(pjTacVal, vsTacVal);
+      let status = "✅";
+      if (maxTacForPage > 240) status = "❌ Over limit";
+      else if (maxTacForPage > 200) status = "⚠️ Warning";
+
+      lines.push(`| ${i + 1} | ${pjTacStr} | ${vsTacStr} | ${status} |`);
     }
     lines.push(``);
   }
@@ -572,7 +670,9 @@ function calculateSummary(
  */
 function generateRecommendations(
   pagedjs: ValidationResult | null,
-  vivliostyle: ValidationResult | null
+  vivliostyle: ValidationResult | null,
+  tacPagedjs?: TACValidationResult | null,
+  tacVivliostyle?: TACValidationResult | null
 ): string[] {
   const recommendations: string[] = [];
 
@@ -583,6 +683,24 @@ function generateRecommendations(
     );
   }
 
+  // TAC-specific recommendations from dedicated validation
+  if (tacPagedjs?.pagesOverLimit.length || tacVivliostyle?.pagesOverLimit.length) {
+    recommendations.push(
+      "Critical: Some pages exceed 240% TAC limit. DriveThruRPG may reject the PDF."
+    );
+    recommendations.push(
+      "Use CGATS21_CRPC1.icc profile for CMYK conversion to reduce TAC."
+    );
+    recommendations.push(
+      "Convert images to CMYK before placing in document to avoid color space issues."
+    );
+  } else if (tacPagedjs?.pagesWithWarnings.length || tacVivliostyle?.pagesWithWarnings.length) {
+    recommendations.push(
+      "Warning: Some pages are close to 240% TAC limit (200-240%). Consider reducing color saturation for safer print results."
+    );
+  }
+
+  // Fallback to old method if TAC validation not available
   const pjTac = pagedjs?.info?.inkCoverage?.reduce(
     (max, p) => Math.max(max, p.tac),
     0
@@ -592,7 +710,7 @@ function generateRecommendations(
     0
   ) ?? 0;
 
-  if (pjTac > 240 || vsTac > 240) {
+  if (!tacPagedjs && !tacVivliostyle && (pjTac > 240 || vsTac > 240)) {
     recommendations.push(
       "Some pages exceed 240% TAC. Consider reducing color saturation or using ICC profiles optimized for lower ink coverage."
     );
@@ -678,6 +796,15 @@ export async function runComparisonInDir(outputDir: string): Promise<ComparisonR
     ? await validatePdf(join(outputDir, "vivliostyle-pdfx.pdf"))
     : null;
 
+  // TAC Validation
+  const pagedJsTacValidation = existsSync(join(outputDir, "pagedjs-pdfx.pdf"))
+    ? await validateTAC(join(outputDir, "pagedjs-pdfx.pdf"))
+    : null;
+
+  const vivliostyleTacValidation = existsSync(join(outputDir, "vivliostyle-pdfx.pdf"))
+    ? await validateTAC(join(outputDir, "vivliostyle-pdfx.pdf"))
+    : null;
+
   // Compare features
   const featureComparison = compareFeatures(
     pagedJsPdfx?.info || null,
@@ -698,7 +825,12 @@ export async function runComparisonInDir(outputDir: string): Promise<ComparisonR
   const summary = calculateSummary(pagedJsPdfx, vivliostylePdfx);
 
   // Generate recommendations
-  const recommendations = generateRecommendations(pagedJsPdfx, vivliostylePdfx);
+  const recommendations = generateRecommendations(
+    pagedJsPdfx,
+    vivliostylePdfx,
+    pagedJsTacValidation,
+    vivliostyleTacValidation
+  );
 
   // Build report
   const report: ComparisonReport = {
@@ -707,10 +839,12 @@ export async function runComparisonInDir(outputDir: string): Promise<ComparisonR
     pagedjs: {
       rgb: pagedJsRgb,
       pdfx: pagedJsPdfx,
+      tacValidation: pagedJsTacValidation,
     },
     vivliostyle: {
       rgb: vivliostyleRgb,
       pdfx: vivliostylePdfx,
+      tacValidation: vivliostyleTacValidation,
     },
     featureComparison,
     visualComparison,

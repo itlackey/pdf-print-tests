@@ -15,6 +15,7 @@ import { buildWithVivliostyle } from "./build-vivliostyle.ts";
 import { convertToPdfx } from "./convert-pdfx.ts";
 import { runComparisonInDir } from "./compare-pdfs.ts";
 import { validatePdf } from "./validate-pdfs.ts";
+import { validateTAC, type TACValidationResult } from "./validate-tac.ts";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const APP_ROOT = join(__dirname, "..");
@@ -106,14 +107,14 @@ function parseArgs(): BatchOptions {
 
 async function processBatch(options: BatchOptions): Promise<{
   success: boolean;
-  pagedjs: { build: boolean; convert: boolean; compliant: boolean };
-  vivliostyle: { build: boolean; convert: boolean; compliant: boolean };
+  pagedjs: { build: boolean; convert: boolean; compliant: boolean; tacValidation?: TACValidationResult };
+  vivliostyle: { build: boolean; convert: boolean; compliant: boolean; tacValidation?: TACValidationResult };
   errors: string[];
 }> {
   const result = {
     success: true,
-    pagedjs: { build: false, convert: false, compliant: false },
-    vivliostyle: { build: false, convert: false, compliant: false },
+    pagedjs: { build: false, convert: false, compliant: false, tacValidation: undefined as TACValidationResult | undefined },
+    vivliostyle: { build: false, convert: false, compliant: false, tacValidation: undefined as TACValidationResult | undefined },
     errors: [] as string[],
   };
 
@@ -244,6 +245,67 @@ async function processBatch(options: BatchOptions): Promise<{
         }
       } catch (e) {
         result.errors.push(`Vivliostyle convert exception: ${e}`);
+      }
+    }
+
+    // Step 3.5: Validate TAC (Total Area Coverage)
+    console.log(`\n${"─".repeat(40)}`);
+    console.log(`Validating TAC (Total Area Coverage)`);
+    console.log(`${"─".repeat(40)}`);
+
+    // Validate PagedJS PDF/X output
+    const pjPdfx = join(outputDir, "pagedjs-pdfx.pdf");
+    if (existsSync(pjPdfx)) {
+      try {
+        console.log(`\n🔍 Checking PagedJS PDF/X...`);
+        const tacResult = await validateTAC(pjPdfx);
+        result.pagedjs.tacValidation = tacResult;
+
+        // Log summary
+        console.log(`   ${tacResult.summary}`);
+
+        // Warn if TAC exceeds limit
+        if (tacResult.pagesOverLimit.length > 0) {
+          console.log(`   ❌ TAC validation failed: ${tacResult.maxTAC.toFixed(1)}% exceeds 240%`);
+          console.log(`   📄 Pages over limit: ${tacResult.pagesOverLimit.join(", ")}`);
+          for (const rec of tacResult.recommendations.slice(0, 3)) {
+            console.log(`   💡 ${rec}`);
+          }
+          // Don't fail the build, just warn
+          result.errors.push(`PagedJS TAC: ${tacResult.pagesOverLimit.length} page(s) exceed 240% limit`);
+        } else if (tacResult.pagesWithWarnings.length > 0) {
+          console.log(`   ⚠️  ${tacResult.pagesWithWarnings.length} page(s) in warning zone (200-240% TAC)`);
+        }
+      } catch (e) {
+        console.log(`   ⚠️  TAC validation skipped: ${e}`);
+      }
+    }
+
+    // Validate Vivliostyle PDF/X output
+    const vsPdfx = join(outputDir, "vivliostyle-pdfx.pdf");
+    if (existsSync(vsPdfx)) {
+      try {
+        console.log(`\n🔍 Checking Vivliostyle PDF/X...`);
+        const tacResult = await validateTAC(vsPdfx);
+        result.vivliostyle.tacValidation = tacResult;
+
+        // Log summary
+        console.log(`   ${tacResult.summary}`);
+
+        // Warn if TAC exceeds limit
+        if (tacResult.pagesOverLimit.length > 0) {
+          console.log(`   ❌ TAC validation failed: ${tacResult.maxTAC.toFixed(1)}% exceeds 240%`);
+          console.log(`   📄 Pages over limit: ${tacResult.pagesOverLimit.join(", ")}`);
+          for (const rec of tacResult.recommendations.slice(0, 3)) {
+            console.log(`   💡 ${rec}`);
+          }
+          // Don't fail the build, just warn
+          result.errors.push(`Vivliostyle TAC: ${tacResult.pagesOverLimit.length} page(s) exceed 240% limit`);
+        } else if (tacResult.pagesWithWarnings.length > 0) {
+          console.log(`   ⚠️  ${tacResult.pagesWithWarnings.length} page(s) in warning zone (200-240% TAC)`);
+        }
+      } catch (e) {
+        console.log(`   ⚠️  TAC validation skipped: ${e}`);
       }
     }
   }

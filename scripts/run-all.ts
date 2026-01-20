@@ -15,7 +15,8 @@ import { existsSync, mkdirSync, readdirSync } from "node:fs";
 import { join, dirname, basename } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { processBatch } from "./batch-process.ts";
+import { processBatch, type BatchOptions } from "./batch-process.ts";
+import type { TACValidationResult } from "./validate-tac.ts";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
@@ -26,8 +27,8 @@ type ProjectRunResult = {
   outputDir: string;
   duration: number;
   success: boolean;
-  pagedjs: { build: boolean; convert: boolean };
-  vivliostyle: { build: boolean; convert: boolean };
+  pagedjs: { build: boolean; convert: boolean; tacValidation?: TACValidationResult };
+  vivliostyle: { build: boolean; convert: boolean; tacValidation?: TACValidationResult };
   errors: string[];
 };
 
@@ -238,7 +239,32 @@ async function runPipeline(options: {
         options.skipVivliostyle || options.skipConvert ? "⏭️" : p.vivliostyle.convert ? "✅" : "❌";
 
       lines.push(`- **PagedJS:** build=${pjBuildStatus}, pdfx=${pjConvertStatus}`);
+
+      // Add TAC validation status for PagedJS
+      if (p.pagedjs.tacValidation) {
+        const tac = p.pagedjs.tacValidation;
+        const tacStatus = tac.passed ? "✅" : "❌";
+        lines.push(`  - TAC: ${tacStatus} Max=${tac.maxTAC.toFixed(1)}%, Avg=${tac.averageTAC.toFixed(1)}%`);
+        if (tac.pagesOverLimit.length > 0) {
+          lines.push(`  - ⚠️ ${tac.pagesOverLimit.length} page(s) exceed 240% TAC limit`);
+        } else if (tac.pagesWithWarnings.length > 0) {
+          lines.push(`  - ⚠️ ${tac.pagesWithWarnings.length} page(s) in warning zone (200-240%)`);
+        }
+      }
+
       lines.push(`- **Vivliostyle:** build=${vsBuildStatus}, pdfx=${vsConvertStatus}`);
+
+      // Add TAC validation status for Vivliostyle
+      if (p.vivliostyle.tacValidation) {
+        const tac = p.vivliostyle.tacValidation;
+        const tacStatus = tac.passed ? "✅" : "❌";
+        lines.push(`  - TAC: ${tacStatus} Max=${tac.maxTAC.toFixed(1)}%, Avg=${tac.averageTAC.toFixed(1)}%`);
+        if (tac.pagesOverLimit.length > 0) {
+          lines.push(`  - ⚠️ ${tac.pagesOverLimit.length} page(s) exceed 240% TAC limit`);
+        } else if (tac.pagesWithWarnings.length > 0) {
+          lines.push(`  - ⚠️ ${tac.pagesWithWarnings.length} page(s) in warning zone (200-240%)`);
+        }
+      }
 
       const reportCandidate = join(p.outputDir, "comparison-report.md");
       if (existsSync(reportCandidate)) {

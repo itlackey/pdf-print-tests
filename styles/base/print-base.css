@@ -1,0 +1,114 @@
+/* ==========================================================================
+   PRINT BASE - @PAGE RULES (CSS Paged Media)
+   Core page setup, margins, running headers/footers
+   ========================================================================== */
+
+/* Default page setup */
+/* Note: Using hardcoded values instead of CSS variables for @page size
+   because PagedJS and Vivliostyle don't resolve CSS variables in @page rules.
+   6.25in = 6in trim + 0.125in bleed on each side
+   9.25in = 9in trim + 0.125in bleed on each side
+
+   For DriveThruRPG/POD services:
+   - Bleed is INCLUDED in the page size (not added outside)
+   - Crop marks are NOT wanted (they add extra space outside the page)
+   - The "bleed" CSS property adds space OUTSIDE the page, which we don't want */
+@page {
+  size: 6.25in 9.25in;
+  margin: var(--margin-top) var(--margin-outside) var(--margin-bottom) var(--margin-inside);
+  /* Removed: marks: crop cross; -- adds unwanted space for crop marks */
+  /* Removed: bleed: 0.125in; -- adds space outside page, but our bleed is already in page size */
+
+  /* Page counter */
+  @bottom-center {
+    content: counter(page);
+    font-family: var(--font-serif);
+    font-size: 9pt;
+    color: var(--color-muted);
+  }
+}
+
+/* First page - no page number */
+@page :first {
+  @bottom-center {
+    content: none;
+  }
+}
+
+/* Left (verso) pages */
+@page :left {
+  margin-left: var(--margin-outside);
+  margin-right: var(--margin-inside);
+
+  @top-left {
+    content: env(pub-title);
+    font-family: var(--font-serif);
+    font-size: 8pt;
+    font-style: italic;
+    color: var(--color-muted);
+  }
+}
+
+/* Right (recto) pages */
+@page :right {
+  margin-left: var(--margin-inside);
+  margin-right: var(--margin-outside);
+
+  @top-right {
+    content: string(chapterTitle);
+    font-family: var(--font-serif);
+    font-size: 8pt;
+    font-style: italic;
+    color: var(--color-muted);
+  }
+}
+
+/* Named pages */
+@page title {
+  margin: 0;
+  @top-left { content: none; }
+  @top-right { content: none; }
+  @bottom-center { content: none; }
+}
+
+@page content {
+  /* Content pages use default settings */
+}
+
+@page appendix {
+  @top-center {
+    content: "Appendix";
+    font-family: var(--font-sans);
+    font-size: 8pt;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+}
+
+/* Running headers - string-set, position: running() */
+.running-header {
+  position: running(runningHeader);
+  display: none; /* Hidden, used for content extraction */
+}
+
+.running-title {
+  string-set: chapterTitle content();
+}
+
+/* Chapter title extraction */
+[data-chapter] {
+  string-set: chapterTitle attr(data-chapter);
+}
+
+/* Print media overrides */
+@media print {
+  body {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .page {
+    margin: 0;
+    padding: 0;
+  }
+}
