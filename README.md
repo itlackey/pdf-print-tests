@@ -1,150 +1,395 @@
-# Vivliostyle Kitchen Sink Example
+# PDFX Test Harness
 
-A comprehensive test document that exercises all CSS Paged Media features supported by Vivliostyle (and PagedJS).
+A comprehensive test harness for comparing **PagedJS** and **Vivliostyle** CLI tools for generating press-ready, DriveThruRPG-compliant PDF/X documents from HTML and CSS.
 
 ## Purpose
 
-This example serves as a feature verification test to ensure both renderers correctly handle all supported CSS features. It's organized into 20 pages covering:
+This harness evaluates both CSS Paged Media renderers on a real-world TTRPG book layout containing:
 
-1. **Title Page** - Named pages, full bleed
-2. **CSS Values** - Length units, colors, calc(), attr()
-3. **Selectors** - All CSS2/CSS3 selectors, pseudo-classes, pseudo-elements
-4. **Counters** - CSS counters, target-counter(), quotes
-5. **Page Layout** - @page rules, margin boxes, page selectors
-6. **Multi-column** - Columns, column-span, column-fill
-7. **Fragmentation** - break-*, orphans, widows, box-decoration-break
-8. **Page Floats** - float-reference, footnotes
-9. **Writing Modes** - vertical text, text-combine-upright, bidi
-10. **Flexbox** - flex container, justify, align
-11. **Transforms** - 2D transforms, filters, blend modes
-12. **Logical Properties** - inline-size, block-size, margin-block
-13. **Typography** - text-decoration, text-emphasis, hyphenation
-14. **Backgrounds** - gradients, border-radius, box-shadow
-15. **Tables** - styled tables, repeat-on-break
-16. **Images** - object-fit, SVG properties
-17. **Ruby** - Ruby annotations, ruby-align, ruby-position
-18. **Clip & Mask** - clip-path shapes
-19. **Summary** - Feature checklist
-20. **Appendix** - Reference information
+1. **Title Page** - Full bleed background with centered typography
+2. **Two-Column Layout** - Circular image float with `shape-outside: circle()`
+3. **Stat Block** - Monster stats with diamond-shaped float using `shape-outside: polygon()`
+4. **Map Layout** - Dungeon map with room descriptions and compass float
+5. **Rules Page** - Variant rules with scroll-shaped float using `shape-outside: inset()`, tables, and callout boxes
 
-## Usage
+## Quick Start
 
-### With Docker
+### Option 1: Docker (Recommended)
+
+The easiest way to run the test harness with all dependencies pre-installed:
 
 ```bash
-# From the test harness root
-docker run -v ./examples:/input -v ./output:/output pdfx-test-harness
+# Build the Docker image
+docker build -t pdfx-test-harness .
+
+# Run with default test document
+docker run -v ./output:/output pdfx-test-harness
+
+# Or use docker-compose
+docker compose up
 ```
 
-### Locally
+### Option 2: Local Installation
 
 ```bash
-# Build with PagedJS
-npx pagedjs-cli examples/kitchen-sink.html -o output/kitchen-sink-pagedjs.pdf
+# Install dependencies
+bun install
 
-# Build with Vivliostyle
-npx @vivliostyle/cli build examples/kitchen-sink.html -o output/kitchen-sink-vivliostyle.pdf
+# Run full test pipeline
+bun run test
+
+# Or run individual steps
+bun run build:pagedjs      # Build with PagedJS
+bun run build:vivliostyle  # Build with Vivliostyle
+bun run convert:pdfx       # Convert to PDF/X
+bun run validate           # Validate PDFs
+bun run compare            # Generate comparison report
 ```
 
-## Features Tested
+## Docker Usage
 
-Based on [Vivliostyle Supported Features](https://vivliostyle.github.io/vivliostyle.js/docs/en/supported-features.html):
+### Basic Usage
 
-### CSS Values
-- [x] CSS-wide keywords (`inherit`)
-- [x] Length units (em, ex, ch, rem, vw, vh, vmin, vmax, vi, vb, cm, mm, q, in, pc, pt, px)
-- [x] Color values (keywords, hex, rgb, rgba, hsl, hsla, currentColor, transparent)
-- [x] `attr()` function
-- [x] `target-counter()` function
-- [x] `calc()` function
-- [x] `env()` function (pub-title, doc-title)
+```bash
+# Run with default test document, output to ./output
+docker run -v $(pwd)/output:/output pdfx-test-harness
 
-### Selectors
-- [x] Type, class, ID selectors
-- [x] Attribute selectors (all variants)
-- [x] Structural pseudo-classes (:nth-child, :first-child, :last-child, etc.)
-- [x] Pseudo-elements (::before, ::after, ::first-letter, ::first-line)
-- [x] Combinators (descendant, child, adjacent, general sibling)
-- [x] :not() pseudo-class
-- [x] :empty, :root pseudo-classes
+# Process custom input directory
+docker run \
+  -v /path/to/my-books:/input:ro \
+  -v /path/to/results:/output \
+  pdfx-test-harness
 
-### At-rules
-- [x] @page with size, bleed, marks
-- [x] Page margin boxes (@top-center, @bottom-center, etc.)
-- [x] Page selectors (:first, :left, :right)
-- [x] Named pages
-- [x] @media rules
-- [x] @namespace
-
-### Properties
-- [x] All box model properties
-- [x] Typography properties
-- [x] Background properties
-- [x] Border properties (including border-radius, border-image)
-- [x] Transform properties
-- [x] Filter properties
-- [x] Flexbox properties
-- [x] Multi-column properties
-- [x] Writing mode properties
-- [x] Logical properties
-
-### Paged Media
-- [x] Page counters (page, pages)
-- [x] Running headers (position: running(), element())
-- [x] String-set
-- [x] Page floats (float: block-start/end, float-reference: page)
-- [x] Footnotes (float: footnote)
-- [x] Break properties (break-before, break-after, break-inside)
-- [x] Orphans and widows
-- [x] box-decoration-break
-
-### Special Features
-- [x] Ruby annotations
-- [x] Text emphasis
-- [x] Hyphenation
-- [x] SVG properties
-- [x] Clip paths
-- [x] Blend modes
-
-## Known Differences
-
-When comparing PagedJS and Vivliostyle output, you may notice differences in:
-
-1. **Page float positioning** - Vivliostyle has more complete page float support
-2. **Footnote placement** - Different overflow handling
-3. **Running header timing** - When string-set values update
-4. **Column balancing** - Different algorithms for column-fill: balance
-5. **Hyphenation** - Depends on browser hyphenation dictionaries
-
-## Verification Checklist
-
-Use this checklist when reviewing output:
-
-- [ ] All 20 pages render
-- [ ] Page numbers are correct
-- [ ] Running headers show chapter titles
-- [ ] Footnotes appear at page bottom
-- [ ] Page floats position at top of page
-- [ ] Multi-column layouts balance
-- [ ] Vertical text displays correctly
-- [ ] Ruby annotations appear above/below text
-- [ ] Transforms and filters render
-- [ ] Colors are consistent
-- [ ] Fonts are embedded
-
-## File Structure
-
-```
-examples/
-├── kitchen-sink.html    # Main HTML document
-├── kitchen-sink.css     # Comprehensive stylesheet
-└── README.md            # This file
+# Skip specific steps
+docker run \
+  -e SKIP_PAGEDJS=true \
+  -v ./output:/output \
+  pdfx-test-harness
 ```
 
-## Reference
+### Batch Processing
 
-- [Vivliostyle Supported Features](https://vivliostyle.github.io/vivliostyle.js/docs/en/supported-features.html)
-- [CSS Paged Media Module Level 3](https://www.w3.org/TR/css-page-3/)
-- [CSS Generated Content for Paged Media](https://www.w3.org/TR/css-gcpm-3/)
-- [CSS Page Floats](https://drafts.csswg.org/css-page-floats/)
-- [CSS Fragmentation Level 3](https://www.w3.org/TR/css-break-3/)
+Place multiple book projects in the input directory:
+
+```
+input/
+├── book1/
+│   ├── book.html
+│   └── styles.css
+├── book2/
+│   ├── index.html
+│   └── print.css
+└── book3/
+    └── chapter.html
+```
+
+Each subdirectory will be processed separately:
+
+```bash
+docker run \
+  -v ./my-books:/input:ro \
+  -v ./results:/output \
+  pdfx-test-harness
+```
+
+Results structure:
+
+```
+results/
+├── batch-summary.md           # Overall batch summary
+├── book1/
+│   ├── pagedjs-output.pdf
+│   ├── pagedjs-pdfx.pdf
+│   ├── vivliostyle-output.pdf
+│   ├── vivliostyle-pdfx.pdf
+│   └── comparison-report.md
+├── book2/
+│   └── ...
+└── book3/
+    └── ...
+```
+
+### Docker Compose
+
+```bash
+# Run with defaults
+docker compose up
+
+# Run with custom input/output
+INPUT_DIR=./my-books OUTPUT_DIR=./results docker compose up
+
+# Interactive shell for debugging
+docker compose run --rm shell
+
+# Only run validation
+docker compose --profile tools run --rm validate
+
+# Only run comparison
+docker compose --profile tools run --rm compare
+```
+
+### Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `INPUT_DIR` | `/input` | Input directory path |
+| `OUTPUT_DIR` | `/output` | Output directory path |
+| `SKIP_PAGEDJS` | `false` | Skip PagedJS rendering |
+| `SKIP_VIVLIOSTYLE` | `false` | Skip Vivliostyle rendering |
+| `SKIP_CONVERT` | `false` | Skip PDF/X conversion |
+| `SKIP_COMPARE` | `false` | Skip comparison report |
+
+### Docker Commands
+
+```bash
+# Build image
+docker build -t pdfx-test-harness .
+
+# Run with mounted volumes
+docker run -v ./input:/input:ro -v ./output:/output pdfx-test-harness
+
+# Interactive shell
+docker run -it --entrypoint /bin/bash pdfx-test-harness
+
+# View help
+docker run pdfx-test-harness help
+
+# Validate specific PDFs
+docker run -v ./pdfs:/input pdfx-test-harness validate /input/*.pdf
+```
+
+## Prerequisites
+
+### System Dependencies
+
+Install these with your system package manager:
+
+```bash
+# Ubuntu/Debian
+sudo apt install ghostscript poppler-utils imagemagick
+
+# macOS
+brew install ghostscript poppler imagemagick
+
+# Windows (via Chocolatey)
+choco install ghostscript imagemagick
+```
+
+### Bun Runtime
+
+```bash
+# Install Bun
+curl -fsSL https://bun.sh/install | bash
+```
+
+## Output Files
+
+After running the test, you'll find:
+
+```
+output/
+├── pagedjs-output.pdf       # PagedJS RGB output
+├── pagedjs-pdfx.pdf         # PagedJS PDF/X-1a (print-ready)
+├── vivliostyle-output.pdf   # Vivliostyle RGB output
+├── vivliostyle-pdfx.pdf     # Vivliostyle PDF/X-1a (print-ready)
+└── visual-diff/             # Visual comparison images
+    ├── pagedjs/
+    ├── vivliostyle/
+    └── diff/
+
+reports/
+└── comparison-report.md     # Detailed A/B comparison report
+```
+
+## DriveThruRPG Specifications
+
+The harness validates against DriveThruRPG's print-on-demand requirements:
+
+| Requirement | Value |
+|-------------|-------|
+| PDF Format | PDF/X-1a:2001 |
+| Color Space | CMYK |
+| Max Ink Coverage | 240% TAC |
+| Bleed | 0.125" all edges |
+| Trim Size | 6" × 9" (configurable) |
+| Final Page Size | 6.25" × 9.25" |
+| Resolution | 300 DPI |
+| Fonts | All embedded |
+
+## Layout Features Tested
+
+### shape-outside Support
+
+The test document exercises multiple `shape-outside` values:
+
+```css
+/* Circle float (Chapter page) */
+.circle-float {
+  shape-outside: circle(50%);
+  shape-margin: 0.125in;
+}
+
+/* Diamond float (Stat block) */
+.diamond-float {
+  shape-outside: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+  shape-margin: 0.1875in;
+}
+
+/* Scroll float (Rules page) */
+.scroll-float {
+  shape-outside: inset(0.125in round 0.25in);
+  shape-margin: 0.125in;
+}
+```
+
+### CSS Paged Media Features
+
+- `@page` rules with named pages
+- Running headers with `position: running()`
+- Page counters
+- Margin boxes
+- Bleed areas
+- Orphan/widow control
+
+## CLI Options
+
+```bash
+bun run scripts/run-all.ts [options]
+
+Options:
+  --skip-pagedjs      Skip PagedJS build step
+  --skip-vivliostyle  Skip Vivliostyle build step
+  --skip-convert      Skip PDF/X conversion step
+  --skip-compare      Skip validation and comparison step
+  -h, --help          Show help message
+```
+
+## Scripts Reference
+
+| Script | Description |
+|--------|-------------|
+| `scripts/build-pagedjs.ts` | Renders HTML to PDF using PagedJS CLI |
+| `scripts/build-vivliostyle.ts` | Renders HTML to PDF using Vivliostyle CLI |
+| `scripts/convert-pdfx.ts` | Converts PDFs to PDF/X using Ghostscript |
+| `scripts/validate-pdfs.ts` | Validates PDFs against DriveThruRPG specs |
+| `scripts/compare-pdfs.ts` | Generates comparison report with visual diff |
+| `scripts/run-all.ts` | Orchestrates the complete pipeline |
+
+## Understanding the Report
+
+The generated `comparison-report.md` includes:
+
+1. **Executive Summary** - Quick compliance status and winner determination
+2. **PagedJS Output** - Detailed validation for PagedJS PDFs
+3. **Vivliostyle Output** - Detailed validation for Vivliostyle PDFs
+4. **A/B Comparison** - Feature-by-feature comparison table
+5. **Visual Comparison** - Pages with rendering differences
+6. **Ink Coverage** - TAC analysis per page
+7. **Recommendations** - Actionable suggestions
+
+## Customization
+
+### Changing Trim Size
+
+Edit `styles.css`:
+
+```css
+:root {
+  --trim-width: 8.5in;   /* Change from 6in */
+  --trim-height: 11in;   /* Change from 9in */
+  --bleed: 0.125in;
+}
+```
+
+### Adding Pages
+
+Add new `<section class="page">` elements to `book.html`:
+
+```html
+<section class="page content-page" data-page-type="custom">
+  <!-- Your content here -->
+</section>
+```
+
+## Troubleshooting
+
+### PagedJS Build Fails
+
+```bash
+# Increase timeout
+bun run scripts/build-pagedjs.ts --timeout 180000
+
+# Check Chromium dependencies
+npx puppeteer browsers install chrome
+```
+
+### Vivliostyle Build Fails
+
+```bash
+# Check for Chromium
+npx @vivliostyle/cli info
+
+# Run with verbose logging
+npx @vivliostyle/cli build book.html -o test.pdf --log-level debug
+```
+
+### PDF/X Conversion Issues
+
+```bash
+# Verify Ghostscript
+gs --version
+
+# Check ICC profiles
+ls /usr/share/color/icc/
+```
+
+### Visual Comparison Errors
+
+```bash
+# Ensure ImageMagick and pdftoppm are installed
+which compare
+which pdftoppm
+```
+
+## Kitchen Sink Example
+
+The `examples/` directory contains a comprehensive kitchen-sink test document that exercises all Vivliostyle supported CSS features:
+
+```bash
+# Test the kitchen-sink example
+docker run \
+  -v ./examples:/input \
+  -v ./output:/output \
+  pdfx-test-harness
+```
+
+### Features Tested
+
+The kitchen-sink example covers 20 pages testing:
+
+- **CSS Values**: Length units, colors, calc(), attr(), target-counter(), env()
+- **Selectors**: All CSS2/CSS3 selectors, pseudo-classes, pseudo-elements
+- **@page Rules**: Size, bleed, marks, margin boxes, page selectors
+- **Multi-column**: column-count, column-span, column-fill
+- **Fragmentation**: break-*, orphans, widows, box-decoration-break
+- **Page Floats**: float-reference: page, footnotes
+- **Writing Modes**: vertical-rl, text-combine-upright, bidi
+- **Flexbox**: All flex properties
+- **Transforms**: 2D transforms, filters, blend modes
+- **Logical Properties**: inline-size, block-size, margin-block
+- **Typography**: text-emphasis, hyphenation, text-decoration
+- **Ruby**: Ruby annotations with ruby-align, ruby-position
+- **Clip Paths**: circle(), polygon(), inset()
+
+See `examples/README.md` for the complete feature verification checklist.
+
+## License
+
+MIT License - Use freely for your TTRPG projects!
+
+## Credits
+
+- [PagedJS](https://pagedjs.org/) - CSS Paged Media polyfill
+- [Vivliostyle](https://vivliostyle.org/) - CSS typesetting engine
+- [Ghostscript](https://www.ghostscript.com/) - PDF processing
+- [Poppler](https://poppler.freedesktop.org/) - PDF utilities

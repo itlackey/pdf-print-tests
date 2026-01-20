@@ -1,0 +1,43 @@
+# Dependencies
+node_modules/
+.npm/
+.bun/
+
+# Output directories
+output/
+reports/
+*.pdf
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# Test/Development
+*.log
+*.tmp
+.env
+.env.*
+
+# Documentation (keep README)
+docs/
+*.md
+!README.md
+
+# Sample input (will be mounted at runtime)
+input/
