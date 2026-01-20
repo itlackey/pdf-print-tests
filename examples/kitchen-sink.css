@@ -46,11 +46,20 @@
    ========================================================================== */
 
 /* Default page setup */
+/* Note: Using hardcoded values instead of CSS variables for @page size
+   because PagedJS and Vivliostyle don't resolve CSS variables in @page rules.
+   6.25in = 6in trim + 0.125in bleed on each side
+   9.25in = 9in trim + 0.125in bleed on each side
+
+   For DriveThruRPG/POD services:
+   - Bleed is INCLUDED in the page size (not added outside)
+   - Crop marks are NOT wanted (they add extra space outside the page)
+   - The "bleed" CSS property adds space OUTSIDE the page, which we don't want */
 @page {
-  size: var(--page-width) var(--page-height);
+  size: 6.25in 9.25in;
   margin: var(--margin-top) var(--margin-outside) var(--margin-bottom) var(--margin-inside);
-  marks: crop cross;
-  bleed: var(--bleed);
+  /* Removed: marks: crop cross; -- adds unwanted space for crop marks */
+  /* Removed: bleed: 0.125in; -- adds space outside page, but our bleed is already in page size */
   
   /* Page counter */
   @bottom-center {

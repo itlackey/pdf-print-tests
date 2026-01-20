@@ -440,7 +440,7 @@ function generateMarkdownReport(report: ComparisonReport): string {
     lines.push(``);
 
     if (report.visualComparison.differencesFound > 0) {
-      lines.push(`Visual difference images saved in \`output/visual-diff/\``);
+      lines.push(`Visual difference images saved in \`visual-diff/\` subdirectory`);
       lines.push(``);
     } else {
       lines.push(`✅ No significant visual differences detected between renderers.`);

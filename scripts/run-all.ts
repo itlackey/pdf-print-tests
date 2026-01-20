@@ -84,6 +84,7 @@ async function runPipeline(options: {
   skipVivliostyle?: boolean;
   skipConvert?: boolean;
   skipCompare?: boolean;
+  strictCompliance?: boolean;
 }): Promise<BatchPipelineResult> {
   const startTime = performance.now();
 
@@ -195,6 +196,7 @@ async function runPipeline(options: {
       skipVivliostyle: Boolean(options.skipVivliostyle),
       skipConvert: Boolean(options.skipConvert),
       skipCompare: Boolean(options.skipCompare),
+      strictCompliance: Boolean(options.strictCompliance),
     });
 
     projects.push({
@@ -283,6 +285,7 @@ function parseArgs(): {
   skipVivliostyle: boolean;
   skipConvert: boolean;
   skipCompare: boolean;
+  strictCompliance: boolean;
   help: boolean;
 } {
   const args = process.argv.slice(2);
@@ -292,6 +295,7 @@ function parseArgs(): {
     skipVivliostyle: false,
     skipConvert: false,
     skipCompare: false,
+    strictCompliance: false,
     help: false,
   };
 
@@ -308,6 +312,9 @@ function parseArgs(): {
         break;
       case "--skip-compare":
         options.skipCompare = true;
+        break;
+      case "--strict":
+        options.strictCompliance = true;
         break;
       case "--help":
       case "-h":
@@ -334,6 +341,7 @@ Options:
   --skip-vivliostyle  Skip Vivliostyle build step
   --skip-convert      Skip PDF/X conversion step
   --skip-compare      Skip validation and comparison step
+  --strict            Fail with exit code 1 if no PDF is DriveThruRPG compliant
   -h, --help          Show this help message
 
 Examples:

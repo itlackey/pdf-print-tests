@@ -16,9 +16,15 @@ interface BuildOptions {
   input: string;
   output: string;
   timeout?: number;
+  /** Page size like "A4", "letter", or custom "6.25in,9.25in" */
   size?: string;
   theme?: string;
+  /** Enable press-ready PDF/X-1a mode */
   press?: boolean;
+  /** Print crop marks */
+  cropMarks?: boolean;
+  /** Bleed area size (e.g., "3mm", "0.125in") */
+  bleed?: string;
 }
 
 export async function buildWithVivliostyle(options: BuildOptions): Promise<{
@@ -28,7 +34,7 @@ export async function buildWithVivliostyle(options: BuildOptions): Promise<{
   error?: string;
 }> {
   const startTime = performance.now();
-  const { input, output, timeout = 120000, size, theme, press = false } = options;
+  const { input, output, timeout = 120000, size, theme, press = false, cropMarks = false, bleed } = options;
 
   // Ensure output directory exists
   const outputDir = dirname(output);
@@ -80,6 +86,16 @@ export async function buildWithVivliostyle(options: BuildOptions): Promise<{
       args.push("--press-ready");
     }
 
+    // Crop marks for print
+    if (cropMarks) {
+      args.push("--crop-marks");
+    }
+
+    // Bleed area
+    if (bleed) {
+      args.push("--bleed", bleed);
+    }
+
     // Note: Vivliostyle CLI does not support --browser-arg flag
     // The sandbox flags are handled internally by playwright
 
@@ -90,7 +106,7 @@ export async function buildWithVivliostyle(options: BuildOptions): Promise<{
 
     if (existsSync(output)) {
       const stats = await Bun.file(output).stat();
-      console.log(`   ✅ Success! Generated ${(stats?.size ?? 0 / 1024).toFixed(2)} KB`);
+      console.log(`   ✅ Success! Generated ${((stats?.size ?? 0) / 1024).toFixed(2)} KB`);
       console.log(`   ⏱️  Duration: ${(duration / 1000).toFixed(2)}s`);
       return {
         success: true,

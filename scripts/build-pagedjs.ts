@@ -17,6 +17,12 @@ interface BuildOptions {
   output: string;
   timeout?: number;
   additionalStyles?: string;
+  /** Page width in mm (takes precedence over pageSize) */
+  widthMM?: number;
+  /** Page height in mm (takes precedence over pageSize) */
+  heightMM?: number;
+  /** Page size preset like "A4", "letter", or custom "6.25in x 9.25in" */
+  pageSize?: string;
 }
 
 export async function buildWithPagedJS(options: BuildOptions): Promise<{
@@ -26,7 +32,7 @@ export async function buildWithPagedJS(options: BuildOptions): Promise<{
   error?: string;
 }> {
   const startTime = performance.now();
-  const { input, output, timeout = 60000, additionalStyles } = options;
+  const { input, output, timeout = 60000, additionalStyles, widthMM, heightMM, pageSize } = options;
 
   // Ensure output directory exists
   const outputDir = dirname(output);
@@ -63,7 +69,14 @@ export async function buildWithPagedJS(options: BuildOptions): Promise<{
     ];
 
     if (additionalStyles) {
-      args.push("--additional-styles", additionalStyles);
+      args.push("--style", additionalStyles);
+    }
+
+    // Add page size options - width/height in mm takes precedence
+    if (widthMM && heightMM) {
+      args.push("-w", String(widthMM), "-h", String(heightMM));
+    } else if (pageSize) {
+      args.push("-s", pageSize);
     }
 
     // Run PagedJS CLI
@@ -73,7 +86,7 @@ export async function buildWithPagedJS(options: BuildOptions): Promise<{
 
     if (existsSync(output)) {
       const stats = await Bun.file(output).stat();
-      console.log(`   ✅ Success! Generated ${(stats?.size ?? 0 / 1024).toFixed(2)} KB`);
+      console.log(`   ✅ Success! Generated ${((stats?.size ?? 0) / 1024).toFixed(2)} KB`);
       console.log(`   ⏱️  Duration: ${(duration / 1000).toFixed(2)}s`);
       return {
         success: true,

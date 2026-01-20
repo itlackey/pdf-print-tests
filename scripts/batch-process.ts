@@ -19,6 +19,23 @@ import { validatePdf } from "./validate-pdfs.ts";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const APP_ROOT = join(__dirname, "..");
 
+// DriveThruRPG target page dimensions
+// Trim size: 6" x 9" + 0.125" bleed on each side = 6.25" x 9.25"
+const TARGET_PAGE = {
+  trimWidthIn: 6,
+  trimHeightIn: 9,
+  bleedIn: 0.125,
+  // Final page size with bleed
+  get widthIn() { return this.trimWidthIn + this.bleedIn * 2; },
+  get heightIn() { return this.trimHeightIn + this.bleedIn * 2; },
+  // Convert to mm for PagedJS (1 inch = 25.4 mm)
+  get widthMM() { return this.widthIn * 25.4; },
+  get heightMM() { return this.heightIn * 25.4; },
+  // Vivliostyle format: "6.25in,9.25in"
+  get vivliostyleSize() { return `${this.widthIn}in,${this.heightIn}in`; },
+  get bleedMM() { return `${(this.bleedIn * 25.4).toFixed(2)}mm`; },
+};
+
 interface BatchOptions {
   inputDir: string;
   outputDir: string;
@@ -27,6 +44,7 @@ interface BatchOptions {
   skipVivliostyle: boolean;
   skipConvert: boolean;
   skipCompare: boolean;
+  strictCompliance?: boolean; // Fail if PDFs are not compliant
 }
 
 function parseArgs(): BatchOptions {
@@ -45,6 +63,7 @@ function parseArgs(): BatchOptions {
     skipVivliostyle: false,
     skipConvert: false,
     skipCompare: false,
+    strictCompliance: false,
   };
 
   for (let i = 0; i < args.length; i++) {
@@ -76,6 +95,9 @@ function parseArgs(): BatchOptions {
       case "--skip-compare":
         options.skipCompare = true;
         break;
+      case "--strict":
+        options.strictCompliance = true;
+        break;
     }
   }
 
@@ -84,14 +106,14 @@ function parseArgs(): BatchOptions {
 
 async function processBatch(options: BatchOptions): Promise<{
   success: boolean;
-  pagedjs: { build: boolean; convert: boolean };
-  vivliostyle: { build: boolean; convert: boolean };
+  pagedjs: { build: boolean; convert: boolean; compliant: boolean };
+  vivliostyle: { build: boolean; convert: boolean; compliant: boolean };
   errors: string[];
 }> {
   const result = {
     success: true,
-    pagedjs: { build: false, convert: false },
-    vivliostyle: { build: false, convert: false },
+    pagedjs: { build: false, convert: false, compliant: false },
+    vivliostyle: { build: false, convert: false, compliant: false },
     errors: [] as string[],
   };
 
@@ -146,6 +168,8 @@ async function processBatch(options: BatchOptions): Promise<{
         input: actualHtmlPath,
         output: join(outputDir, "pagedjs-output.pdf"),
         timeout: 120000,
+        // Let CSS @page size rule control page dimensions
+        // PagedJS's -w/-h options don't work as expected with CSS-defined sizes
       });
       result.pagedjs.build = pjResult.success;
       if (!pjResult.success && pjResult.error) {
@@ -167,6 +191,10 @@ async function processBatch(options: BatchOptions): Promise<{
         input: actualHtmlPath,
         output: join(outputDir, "vivliostyle-output.pdf"),
         timeout: 120000,
+        // Pass explicit page size for consistent output
+        size: TARGET_PAGE.vivliostyleSize,
+        // Note: We don't use press-ready here as we do our own PDF/X conversion
+        // with Ghostscript for better control over the process
       });
       result.vivliostyle.build = vsResult.success;
       if (!vsResult.success && vsResult.error) {
@@ -227,7 +255,19 @@ async function processBatch(options: BatchOptions): Promise<{
     console.log(`${"─".repeat(40)}`);
 
     try {
-      await runComparisonInDir(outputDir);
+      const comparisonResult = await runComparisonInDir(outputDir);
+
+      // Track compliance status
+      result.pagedjs.compliant = comparisonResult.summary.pagedJsCompliant;
+      result.vivliostyle.compliant = comparisonResult.summary.vivliostyleCompliant;
+
+      // In strict mode, fail if neither PDF is compliant
+      if (options.strictCompliance) {
+        const anyCompliant = result.pagedjs.compliant || result.vivliostyle.compliant;
+        if (!anyCompliant) {
+          result.errors.push("Strict mode: No compliant PDF/X output produced");
+        }
+      }
     } catch (e) {
       result.errors.push(`Comparison: ${e}`);
     }
@@ -250,10 +290,17 @@ async function processBatch(options: BatchOptions): Promise<{
   const vsConvertStatus =
     options.skipVivliostyle || options.skipConvert ? "⏭️" : result.vivliostyle.convert ? "✅" : "❌";
 
+  const pjCompliantStatus =
+    options.skipCompare ? "⏭️" : result.pagedjs.compliant ? "✅" : "❌";
+  const vsCompliantStatus =
+    options.skipCompare ? "⏭️" : result.vivliostyle.compliant ? "✅" : "❌";
+
   console.log(`PagedJS Build:     ${pjBuildStatus}`);
   console.log(`PagedJS PDF/X:     ${pjConvertStatus}`);
+  console.log(`PagedJS Compliant: ${pjCompliantStatus}`);
   console.log(`Vivliostyle Build: ${vsBuildStatus}`);
   console.log(`Vivliostyle PDF/X: ${vsConvertStatus}`);
+  console.log(`Vivliostyle Compliant: ${vsCompliantStatus}`);
 
   if (result.errors.length > 0) {
     console.log(`\nErrors:`);

@@ -162,15 +162,36 @@ async function getPdfFonts(filepath: string): Promise<FontInfo[]> {
     for (const line of lines) {
       if (line.trim() === "") continue;
 
-      // pdffonts output format varies, try to parse it
-      const parts = line.split(/\s{2,}/);
-      if (parts.length >= 4) {
+      // pdffonts uses fixed-width columns:
+      // name (36 chars) | type (17 chars) | encoding (16 chars) | emb (3 chars) | sub (3 chars) | uni (3 chars) | object ID
+      // We need to parse based on the column positions, not whitespace splitting
+
+      // Alternative approach: split by multiple spaces but handle the "yes/no" columns specially
+      // The emb/sub/uni columns are always at fixed positions from the right side of the encoding column
+
+      // Find the position of "yes" or "no" patterns for emb column (around position 53-56)
+      const embMatch = line.match(/\s(yes|no)\s+(yes|no)\s+(yes|no)\s+/i);
+
+      if (embMatch && embMatch.index !== undefined) {
+        // Extract name from the beginning (up to the type column start, approximately 36 chars)
+        const name = line.substring(0, 36).trim() || "[none]";
+
+        // Extract type (next ~17 chars after name)
+        const type = line.substring(36, 54).trim() || "unknown";
+
+        // Extract encoding (next ~16 chars)
+        const encoding = line.substring(54, 71).trim() || "unknown";
+
+        // The match groups give us emb, sub, uni
+        const embedded = embMatch[1].toLowerCase() === "yes";
+        const subset = embMatch[2].toLowerCase() === "yes";
+
         fonts.push({
-          name: parts[0]?.trim() || "unknown",
-          type: parts[1]?.trim() || "unknown",
-          encoding: parts[2]?.trim() || "unknown",
-          embedded: parts[3]?.trim()?.toLowerCase() === "yes",
-          subset: parts[4]?.trim()?.toLowerCase() === "yes",
+          name,
+          type,
+          encoding,
+          embedded,
+          subset,
         });
       }
     }
