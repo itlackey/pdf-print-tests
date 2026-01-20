@@ -4,3 +4,4 @@ reports/
 .vscode/settings.json
 *.backup
 *.bak
+docs/draft/
