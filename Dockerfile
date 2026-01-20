@@ -46,7 +46,7 @@ RUN bun install
 COPY . .
 
 # Create directories for input/output
-RUN mkdir -p /input /output /app/output /app/reports
+RUN mkdir -p /input /output /app/output
 
 # Make scripts executable
 RUN chmod +x run.sh scripts/*.ts

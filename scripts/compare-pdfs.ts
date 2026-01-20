@@ -638,14 +638,27 @@ function generateRecommendations(
  * Run the full comparison and generate report
  */
 export async function runComparison(): Promise<ComparisonReport> {
+  const defaultDir =
+    process.env.OUTPUT_DIR && process.env.OUTPUT_DIR.trim().length > 0
+      ? process.env.OUTPUT_DIR
+      : join(ROOT, "output", "default-test");
+
+  // Back-compat: if default-test doesn't exist but ROOT/output contains PDFs, use ROOT/output.
+  const projectDir =
+    existsSync(join(defaultDir, "pagedjs-output.pdf")) ||
+    existsSync(join(defaultDir, "vivliostyle-output.pdf"))
+      ? defaultDir
+      : join(ROOT, "output");
+
+  return runComparisonInDir(projectDir);
+}
+
+export async function runComparisonInDir(outputDir: string): Promise<ComparisonReport> {
   console.log(`\n📊 Running PDF Comparison...\n`);
   console.log(`${"=".repeat(60)}`);
 
-  const outputDir = join(ROOT, "output");
-  const reportsDir = join(ROOT, "reports");
-
-  if (!existsSync(reportsDir)) {
-    mkdirSync(reportsDir, { recursive: true });
+  if (!existsSync(outputDir)) {
+    mkdirSync(outputDir, { recursive: true });
   }
 
   // Validate all PDFs
@@ -708,7 +721,7 @@ export async function runComparison(): Promise<ComparisonReport> {
   const markdown = generateMarkdownReport(report);
 
   // Save report
-  const reportPath = join(reportsDir, "comparison-report.md");
+  const reportPath = join(outputDir, "comparison-report.md");
   await Bun.write(reportPath, markdown);
 
   console.log(`\n${"=".repeat(60)}`);
@@ -719,6 +732,12 @@ export async function runComparison(): Promise<ComparisonReport> {
 
 // Run if called directly
 if (import.meta.main) {
-  await runComparison();
+  const args = process.argv.slice(2);
+  const dirFlagIndex = args.findIndex((a) => a === "--dir" || a === "--output");
+  const dir = dirFlagIndex >= 0 ? args[dirFlagIndex + 1] : undefined;
+
+  await runComparisonInDir(dir ?? (process.env.OUTPUT_DIR && process.env.OUTPUT_DIR.trim().length > 0
+    ? process.env.OUTPUT_DIR
+    : join(ROOT, "output", "default-test")));
   console.log("\n✅ Comparison complete!");
 }

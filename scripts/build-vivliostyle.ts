@@ -5,7 +5,7 @@
  */
 
 import { $ } from "bun";
-import { existsSync, mkdirSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -123,8 +123,29 @@ export async function buildWithVivliostyle(options: BuildOptions): Promise<{
 
 // Run if called directly
 if (import.meta.main) {
-  const input = join(ROOT, "book.html");
-  const output = join(ROOT, "output", "vivliostyle-output.pdf");
+  const inputDir = process.env.INPUT_DIR && process.env.INPUT_DIR.trim().length > 0
+    ? process.env.INPUT_DIR
+    : join(ROOT, "input");
+
+  let input = join(inputDir, "book.html");
+  if (!existsSync(input)) {
+    const htmlFiles = existsSync(inputDir)
+      ? readdirSync(inputDir).filter((f) => f.toLowerCase().endsWith(".html"))
+      : [];
+    if (htmlFiles.length > 0) {
+      input = join(inputDir, htmlFiles[0]);
+    }
+  }
+
+  const outputBaseDir =
+    process.env.OUTPUT_DIR && process.env.OUTPUT_DIR.trim().length > 0
+      ? process.env.OUTPUT_DIR
+      : join(ROOT, "output");
+  const projectName = process.env.INPUT_DIR && process.env.INPUT_DIR.trim().length > 0
+    ? "project"
+    : "default-test";
+
+  const output = join(outputBaseDir, projectName, "vivliostyle-output.pdf");
 
   const result = await buildWithVivliostyle({ input, output });
 

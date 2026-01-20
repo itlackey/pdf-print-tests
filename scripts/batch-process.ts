@@ -13,7 +13,7 @@ import { fileURLToPath } from "node:url";
 import { buildWithPagedJS } from "./build-pagedjs.ts";
 import { buildWithVivliostyle } from "./build-vivliostyle.ts";
 import { convertToPdfx } from "./convert-pdfx.ts";
-import { runComparison } from "./compare-pdfs.ts";
+import { runComparisonInDir } from "./compare-pdfs.ts";
 import { validatePdf } from "./validate-pdfs.ts";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -32,8 +32,14 @@ interface BatchOptions {
 function parseArgs(): BatchOptions {
   const args = process.argv.slice(2);
   const options: BatchOptions = {
-    inputDir: process.cwd(),
-    outputDir: join(process.cwd(), "output"),
+    inputDir:
+      process.env.INPUT_DIR && process.env.INPUT_DIR.trim().length > 0
+        ? process.env.INPUT_DIR
+        : join(process.cwd(), "input"),
+    outputDir:
+      process.env.OUTPUT_DIR && process.env.OUTPUT_DIR.trim().length > 0
+        ? process.env.OUTPUT_DIR
+        : join(process.cwd(), "output", "default-test"),
     htmlFile: "book.html",
     skipPagedJS: false,
     skipVivliostyle: false,
@@ -220,39 +226,11 @@ async function processBatch(options: BatchOptions): Promise<{
     console.log(`Validating and Comparing`);
     console.log(`${"─".repeat(40)}`);
 
-    // We need to temporarily set up the environment for the comparison script
-    // by symlinking or copying output to the expected location
-    const appOutputDir = join(APP_ROOT, "output");
-    const appReportsDir = join(APP_ROOT, "reports");
-
-    // Clean and link directories
-    await $`rm -rf ${appOutputDir} ${appReportsDir}`.quiet().nothrow();
-    await $`mkdir -p ${appReportsDir}`.quiet();
-
-    // Symlink output directory
     try {
-      await $`ln -sf ${outputDir} ${appOutputDir}`.quiet();
-    } catch {
-      // Fall back to copying if symlink fails
-      await $`cp -r ${outputDir} ${appOutputDir}`.quiet().nothrow();
-    }
-
-    try {
-      // Run comparison from app root
-      process.chdir(APP_ROOT);
-      await runComparison();
-
-      // Copy report to output directory
-      const reportSrc = join(appReportsDir, "comparison-report.md");
-      if (existsSync(reportSrc)) {
-        copyFileSync(reportSrc, join(outputDir, "comparison-report.md"));
-      }
+      await runComparisonInDir(outputDir);
     } catch (e) {
       result.errors.push(`Comparison: ${e}`);
     }
-
-    // Cleanup symlink
-    await $`rm -f ${appOutputDir}`.quiet().nothrow();
   }
 
   // Determine overall success
@@ -265,10 +243,17 @@ async function processBatch(options: BatchOptions): Promise<{
   console.log(`\n${"=".repeat(60)}`);
   console.log(`Summary for: ${basename(inputDir)}`);
   console.log(`${"=".repeat(60)}`);
-  console.log(`PagedJS Build:    ${result.pagedjs.build ? "✅" : "❌"}`);
-  console.log(`PagedJS PDF/X:    ${result.pagedjs.convert ? "✅" : "❌"}`);
-  console.log(`Vivliostyle Build: ${result.vivliostyle.build ? "✅" : "❌"}`);
-  console.log(`Vivliostyle PDF/X: ${result.vivliostyle.convert ? "✅" : "❌"}`);
+  const pjBuildStatus = options.skipPagedJS ? "⏭️" : result.pagedjs.build ? "✅" : "❌";
+  const pjConvertStatus =
+    options.skipPagedJS || options.skipConvert ? "⏭️" : result.pagedjs.convert ? "✅" : "❌";
+  const vsBuildStatus = options.skipVivliostyle ? "⏭️" : result.vivliostyle.build ? "✅" : "❌";
+  const vsConvertStatus =
+    options.skipVivliostyle || options.skipConvert ? "⏭️" : result.vivliostyle.convert ? "✅" : "❌";
+
+  console.log(`PagedJS Build:     ${pjBuildStatus}`);
+  console.log(`PagedJS PDF/X:     ${pjConvertStatus}`);
+  console.log(`Vivliostyle Build: ${vsBuildStatus}`);
+  console.log(`Vivliostyle PDF/X: ${vsConvertStatus}`);
 
   if (result.errors.length > 0) {
     console.log(`\nErrors:`);

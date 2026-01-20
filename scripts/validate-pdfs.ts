@@ -441,9 +441,26 @@ export async function validatePdf(filepath: string): Promise<ValidationResult> {
 if (import.meta.main) {
   const args = process.argv.slice(2);
 
-  if (args.length === 0) {
-    // Validate all PDFs in output directory
-    const outputDir = join(ROOT, "output");
+  const dirFlagIndex = args.findIndex((a) => a === "--dir" || a === "--output");
+  const dir = dirFlagIndex >= 0 ? args[dirFlagIndex + 1] : undefined;
+  const remainingArgs = dirFlagIndex >= 0
+    ? args.filter((_, idx) => idx !== dirFlagIndex && idx !== dirFlagIndex + 1)
+    : args;
+
+  if (remainingArgs.length === 0) {
+    // Validate all PDFs in a project output directory
+    const outputDirCandidate =
+      dir ??
+      (process.env.OUTPUT_DIR && process.env.OUTPUT_DIR.trim().length > 0
+        ? process.env.OUTPUT_DIR
+        : join(ROOT, "output", "default-test"));
+
+    // Back-compat: if default-test doesn't exist but ROOT/output contains PDFs, use ROOT/output.
+    const outputDir =
+      existsSync(join(outputDirCandidate, "pagedjs-output.pdf")) ||
+      existsSync(join(outputDirCandidate, "vivliostyle-output.pdf"))
+        ? outputDirCandidate
+        : join(ROOT, "output");
     const pdfs = [
       "pagedjs-output.pdf",
       "pagedjs-pdfx.pdf",
@@ -459,7 +476,7 @@ if (import.meta.main) {
     }
   } else {
     // Validate specified PDFs
-    for (const filepath of args) {
+    for (const filepath of remainingArgs) {
       await validatePdf(filepath);
     }
   }

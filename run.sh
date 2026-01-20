@@ -54,8 +54,8 @@ fi
 echo -e "\n${YELLOW}📦 Installing dependencies...${NC}"
 bun install
 
-# Create output directories
-mkdir -p output reports
+# Create output directory
+mkdir -p output
 
 # Parse arguments
 SKIP_PAGEDJS=0
@@ -84,114 +84,26 @@ for arg in "$@"; do
     esac
 done
 
-# Step 1: Build with PagedJS
-if [ $SKIP_PAGEDJS -eq 0 ]; then
-    echo -e "\n${BLUE}────────────────────────────────────────${NC}"
-    echo -e "${BLUE}STEP 1: Build with PagedJS CLI${NC}"
-    echo -e "${BLUE}────────────────────────────────────────${NC}"
-    
-    if npx pagedjs-cli book.html -o output/pagedjs-output.pdf --browserArgs "--no-sandbox,--disable-setuid-sandbox"; then
-        echo -e "${GREEN}✅ PagedJS build complete${NC}"
-    else
-        echo -e "${RED}❌ PagedJS build failed${NC}"
-    fi
-else
-    echo -e "\n${YELLOW}⏭️  Skipping PagedJS build${NC}"
-fi
+ARGS=()
+[ $SKIP_PAGEDJS -eq 1 ] && ARGS+=("--skip-pagedjs")
+[ $SKIP_VIVLIOSTYLE -eq 1 ] && ARGS+=("--skip-vivliostyle")
+[ $SKIP_CONVERT -eq 1 ] && ARGS+=("--skip-convert")
+[ $SKIP_COMPARE -eq 1 ] && ARGS+=("--skip-compare")
 
-# Step 2: Build with Vivliostyle
-if [ $SKIP_VIVLIOSTYLE -eq 0 ]; then
-    echo -e "\n${BLUE}────────────────────────────────────────${NC}"
-    echo -e "${BLUE}STEP 2: Build with Vivliostyle CLI${NC}"
-    echo -e "${BLUE}────────────────────────────────────────${NC}"
-    
-    if npx @vivliostyle/cli build book.html -o output/vivliostyle-output.pdf --press-ready --browser-arg=--no-sandbox --browser-arg=--disable-setuid-sandbox; then
-        echo -e "${GREEN}✅ Vivliostyle build complete${NC}"
-    else
-        echo -e "${RED}❌ Vivliostyle build failed${NC}"
-    fi
-else
-    echo -e "\n${YELLOW}⏭️  Skipping Vivliostyle build${NC}"
-fi
+echo -e "\n${BLUE}────────────────────────────────────────${NC}"
+echo -e "${BLUE}Running unified pipeline (same as Docker)${NC}"
+echo -e "${BLUE}────────────────────────────────────────${NC}"
 
-# Step 3: Convert to PDF/X
-if [ $SKIP_CONVERT -eq 0 ]; then
-    echo -e "\n${BLUE}────────────────────────────────────────${NC}"
-    echo -e "${BLUE}STEP 3: Convert to PDF/X (Ghostscript)${NC}"
-    echo -e "${BLUE}────────────────────────────────────────${NC}"
-    
-    convert_to_pdfx() {
-        local input="$1"
-        local output="$2"
-        
-        if [ ! -f "$input" ]; then
-            echo -e "${YELLOW}⚠️  Skipping $input (not found)${NC}"
-            return 1
-        fi
-        
-        echo -e "   Converting $(basename "$input")..."
-        
-        gs -dBATCH -dNOPAUSE -dNOOUTERSAVE -dQUIET \
-           -sDEVICE=pdfwrite \
-           -dCompatibilityLevel=1.4 \
-           -sColorConversionStrategy=CMYK \
-           -sProcessColorModel=DeviceCMYK \
-           -dOverrideICC=true \
-           -dColorImageResolution=300 \
-           -dGrayImageResolution=300 \
-           -dMonoImageResolution=300 \
-           -dEmbedAllFonts=true \
-           -dSubsetFonts=true \
-           -dAutoFilterColorImages=false \
-           -dColorImageFilter=/DCTEncode \
-           -dAutoFilterGrayImages=false \
-           -dGrayImageFilter=/DCTEncode \
-           -dPDFSETTINGS=/prepress \
-           -dPDFX=true \
-           -sOutputFile="$output" \
-           "$input"
-        
-        if [ -f "$output" ]; then
-            echo -e "   ${GREEN}✅${NC} Created $(basename "$output")"
-            return 0
-        else
-            echo -e "   ${RED}❌${NC} Failed to create $(basename "$output")"
-            return 1
-        fi
-    }
-    
-    convert_to_pdfx "output/pagedjs-output.pdf" "output/pagedjs-pdfx.pdf"
-    convert_to_pdfx "output/vivliostyle-output.pdf" "output/vivliostyle-pdfx.pdf"
-else
-    echo -e "\n${YELLOW}⏭️  Skipping PDF/X conversion${NC}"
-fi
-
-# Step 4: Validate and Compare
-if [ $SKIP_COMPARE -eq 0 ]; then
-    echo -e "\n${BLUE}────────────────────────────────────────${NC}"
-    echo -e "${BLUE}STEP 4: Validate and Compare${NC}"
-    echo -e "${BLUE}────────────────────────────────────────${NC}"
-    
-    bun run scripts/compare-pdfs.ts
-else
-    echo -e "\n${YELLOW}⏭️  Skipping comparison${NC}"
-fi
+# If INPUT_DIR / OUTPUT_DIR are set in the environment, the pipeline will use them.
+# Otherwise it will fall back to the bundled ./input and write to ./output/default-test.
+bun run test "${ARGS[@]}"
 
 # Summary
 echo -e "\n${BLUE}═══════════════════════════════════════════════════════════${NC}"
 echo -e "${BLUE}   PIPELINE COMPLETE${NC}"
 echo -e "${BLUE}═══════════════════════════════════════════════════════════${NC}"
 
-echo -e "\n${GREEN}📁 Generated Files:${NC}"
-for f in output/*.pdf; do
-    if [ -f "$f" ]; then
-        size=$(du -h "$f" | cut -f1)
-        echo -e "   ${GREEN}✅${NC} $(basename "$f") ($size)"
-    fi
-done
-
-if [ -f "reports/comparison-report.md" ]; then
-    echo -e "\n${GREEN}📄 Report: reports/comparison-report.md${NC}"
-fi
+echo -e "\n${GREEN}📄 Summary: output/batch-summary.md${NC}"
+echo -e "${GREEN}📁 Results: output/<project>/*${NC}"
 
 echo ""

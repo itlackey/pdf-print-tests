@@ -70,9 +70,11 @@ show_help() {
     echo "Examples:"
     echo "  # Run with default test document"
     echo "  docker run -v ./output:/output pdfx-test-harness"
+    echo "  # Results: ./output/default-test/* and ./output/batch-summary.md"
     echo ""
     echo "  # Process custom input"
     echo "  docker run -v ./my-books:/input -v ./results:/output pdfx-test-harness"
+    echo "  # Results: ./results/<project>/* and ./results/batch-summary.md"
     echo ""
     echo "  # Skip PagedJS, only test Vivliostyle"
     echo "  docker run -e SKIP_PAGEDJS=true -v ./output:/output pdfx-test-harness"
@@ -140,11 +142,6 @@ process_project() {
         $args
     
     local result=$?
-    
-    # Copy reports
-    if [ -d "$work_dir/reports" ]; then
-        cp -r "$work_dir/reports"/* "$project_output/" 2>/dev/null || true
-    fi
     
     # Cleanup
     rm -rf "$work_dir"
@@ -218,7 +215,7 @@ run_pipeline() {
 
 # Run with the default included test document
 run_default_test() {
-    log_info "Running default test with included book.html"
+    log_info "Running default test with included input/book.html"
     
     mkdir -p "$OUTPUT_DIR/default-test"
     
@@ -231,15 +228,12 @@ run_default_test() {
     
     cd /app
     bun run scripts/batch-process.ts \
-        --input /app \
+        --input /app/input \
         --output "$OUTPUT_DIR/default-test" \
         --html book.html \
         $args
     
-    # Copy the report
-    if [ -f /app/reports/comparison-report.md ]; then
-        cp /app/reports/comparison-report.md "$OUTPUT_DIR/default-test/"
-    fi
+    # comparison-report.md is written directly into the output directory
 }
 
 # Generate a summary report for batch processing

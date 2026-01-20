@@ -39,11 +39,12 @@ docker run -v ./examples:/input -v ./output:/output pdfx-test-harness
 ### Locally
 
 ```bash
-# Build with PagedJS
-npx pagedjs-cli examples/kitchen-sink.html -o output/kitchen-sink-pagedjs.pdf
+# Run the unified pipeline (same behavior as Docker)
+INPUT_DIR=./examples OUTPUT_DIR=./output bun run test
 
-# Build with Vivliostyle
-npx @vivliostyle/cli build examples/kitchen-sink.html -o output/kitchen-sink-vivliostyle.pdf
+# Results are written to:
+#   ./output/project/*
+#   ./output/batch-summary.md
 ```
 
 ## Features Tested
@@ -51,6 +52,7 @@ npx @vivliostyle/cli build examples/kitchen-sink.html -o output/kitchen-sink-viv
 Based on [Vivliostyle Supported Features](https://vivliostyle.github.io/vivliostyle.js/docs/en/supported-features.html):
 
 ### CSS Values
+
 - [x] CSS-wide keywords (`inherit`)
 - [x] Length units (em, ex, ch, rem, vw, vh, vmin, vmax, vi, vb, cm, mm, q, in, pc, pt, px)
 - [x] Color values (keywords, hex, rgb, rgba, hsl, hsla, currentColor, transparent)
@@ -60,6 +62,7 @@ Based on [Vivliostyle Supported Features](https://vivliostyle.github.io/vivliost
 - [x] `env()` function (pub-title, doc-title)
 
 ### Selectors
+
 - [x] Type, class, ID selectors
 - [x] Attribute selectors (all variants)
 - [x] Structural pseudo-classes (:nth-child, :first-child, :last-child, etc.)
@@ -69,6 +72,7 @@ Based on [Vivliostyle Supported Features](https://vivliostyle.github.io/vivliost
 - [x] :empty, :root pseudo-classes
 
 ### At-rules
+
 - [x] @page with size, bleed, marks
 - [x] Page margin boxes (@top-center, @bottom-center, etc.)
 - [x] Page selectors (:first, :left, :right)
@@ -77,6 +81,7 @@ Based on [Vivliostyle Supported Features](https://vivliostyle.github.io/vivliost
 - [x] @namespace
 
 ### Properties
+
 - [x] All box model properties
 - [x] Typography properties
 - [x] Background properties
@@ -89,6 +94,7 @@ Based on [Vivliostyle Supported Features](https://vivliostyle.github.io/vivliost
 - [x] Logical properties
 
 ### Paged Media
+
 - [x] Page counters (page, pages)
 - [x] Running headers (position: running(), element())
 - [x] String-set
@@ -99,6 +105,7 @@ Based on [Vivliostyle Supported Features](https://vivliostyle.github.io/vivliost
 - [x] box-decoration-break
 
 ### Special Features
+
 - [x] Ruby annotations
 - [x] Text emphasis
 - [x] Hyphenation
@@ -134,7 +141,7 @@ Use this checklist when reviewing output:
 
 ## File Structure
 
-```
+```text
 examples/
 ├── kitchen-sink.html    # Main HTML document
 ├── kitchen-sink.css     # Comprehensive stylesheet

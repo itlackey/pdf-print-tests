@@ -38,12 +38,32 @@ bun install
 # Run full test pipeline
 bun run test
 
+# (By default this uses the bundled ./input and writes to ./output/default-test)
+
+# Run against a custom input directory (single project or batch folder)
+INPUT_DIR=./my-books OUTPUT_DIR=./results bun run test
+
 # Or run individual steps
 bun run build:pagedjs      # Build with PagedJS
 bun run build:vivliostyle  # Build with Vivliostyle
 bun run convert:pdfx       # Convert to PDF/X
-bun run validate           # Validate PDFs
-bun run compare            # Generate comparison report
+bun run validate           # Validate PDFs (see per-project examples below)
+bun run compare            # Generate comparison report (see per-project examples below)
+```
+
+### Validating / Comparing A Specific Project
+
+The harness writes results into per-project output directories (e.g. `output/default-test/` or `results/book1/`).
+
+```bash
+# Convert RGB PDFs to PDF/X inside a project output directory
+bun run convert:pdfx -- --dir output/default-test
+
+# Validate all expected PDFs inside a project output directory
+bun run validate -- --dir output/default-test
+
+# Generate (or regenerate) comparison-report.md inside a project output directory
+bun run compare -- --dir output/default-test
 ```
 
 ## Docker Usage
@@ -71,7 +91,7 @@ docker run \
 
 Place multiple book projects in the input directory:
 
-```
+```text
 input/
 ├── book1/
 │   ├── book.html
@@ -94,7 +114,7 @@ docker run \
 
 Results structure:
 
-```
+```text
 results/
 ├── batch-summary.md           # Overall batch summary
 ├── book1/
@@ -122,22 +142,22 @@ INPUT_DIR=./my-books OUTPUT_DIR=./results docker compose up
 docker compose run --rm shell
 
 # Only run validation
-docker compose --profile tools run --rm validate
+docker compose --profile tools run --rm validate -- --dir /output/default-test
 
 # Only run comparison
-docker compose --profile tools run --rm compare
+docker compose --profile tools run --rm compare -- --dir /output/default-test
 ```
 
 ### Environment Variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `INPUT_DIR` | `/input` | Input directory path |
-| `OUTPUT_DIR` | `/output` | Output directory path |
-| `SKIP_PAGEDJS` | `false` | Skip PagedJS rendering |
-| `SKIP_VIVLIOSTYLE` | `false` | Skip Vivliostyle rendering |
-| `SKIP_CONVERT` | `false` | Skip PDF/X conversion |
-| `SKIP_COMPARE` | `false` | Skip comparison report |
+| Variable          | Default   | Description                |
+| ----------------- | --------- | -------------------------- |
+| `INPUT_DIR`       | `/input`  | Input directory path       |
+| `OUTPUT_DIR`      | `/output` | Output directory path      |
+| `SKIP_PAGEDJS`    | `false`   | Skip PagedJS rendering     |
+| `SKIP_VIVLIOSTYLE`| `false`   | Skip Vivliostyle rendering |
+| `SKIP_CONVERT`    | `false`   | Skip PDF/X conversion      |
+| `SKIP_COMPARE`    | `false`   | Skip comparison report     |
 
 ### Docker Commands
 
@@ -156,6 +176,12 @@ docker run pdfx-test-harness help
 
 # Validate specific PDFs
 docker run -v ./pdfs:/input pdfx-test-harness validate /input/*.pdf
+
+# Validate a generated project output directory
+docker run -v ./output:/output pdfx-test-harness validate --dir /output/default-test
+
+# Generate comparison report for a generated project output directory
+docker run -v ./output:/output pdfx-test-harness compare --dir /output/default-test
 ```
 
 ## Prerequisites
@@ -186,19 +212,21 @@ curl -fsSL https://bun.sh/install | bash
 
 After running the test, you'll find:
 
-```
+```text
 output/
-├── pagedjs-output.pdf       # PagedJS RGB output
-├── pagedjs-pdfx.pdf         # PagedJS PDF/X-1a (print-ready)
-├── vivliostyle-output.pdf   # Vivliostyle RGB output
-├── vivliostyle-pdfx.pdf     # Vivliostyle PDF/X-1a (print-ready)
-└── visual-diff/             # Visual comparison images
-    ├── pagedjs/
-    ├── vivliostyle/
-    └── diff/
-
-reports/
-└── comparison-report.md     # Detailed A/B comparison report
+├── batch-summary.md                 # Summary across all processed projects
+├── default-test/                    # When INPUT_DIR is unset/empty
+│   ├── pagedjs-output.pdf
+│   ├── pagedjs-pdfx.pdf
+│   ├── vivliostyle-output.pdf
+│   ├── vivliostyle-pdfx.pdf
+│   ├── comparison-report.md
+│   └── visual-diff/                 # Visual comparison images
+│       ├── pagedjs/
+│       ├── vivliostyle/
+│       └── diff/
+└── <project>/                       # For mounted/batch inputs (one folder per project)
+  └── ...
 ```
 
 ## DriveThruRPG Specifications
@@ -206,7 +234,7 @@ reports/
 The harness validates against DriveThruRPG's print-on-demand requirements:
 
 | Requirement | Value |
-|-------------|-------|
+| ----------- | ----- |
 | PDF Format | PDF/X-1a:2001 |
 | Color Space | CMYK |
 | Max Ink Coverage | 240% TAC |
@@ -267,7 +295,7 @@ Options:
 ## Scripts Reference
 
 | Script | Description |
-|--------|-------------|
+| ------ | ----------- |
 | `scripts/build-pagedjs.ts` | Renders HTML to PDF using PagedJS CLI |
 | `scripts/build-vivliostyle.ts` | Renders HTML to PDF using Vivliostyle CLI |
 | `scripts/convert-pdfx.ts` | Converts PDFs to PDF/X using Ghostscript |
@@ -291,7 +319,7 @@ The generated `comparison-report.md` includes:
 
 ### Changing Trim Size
 
-Edit `styles.css`:
+Edit `input/styles.css`:
 
 ```css
 :root {
@@ -303,7 +331,7 @@ Edit `styles.css`:
 
 ### Adding Pages
 
-Add new `<section class="page">` elements to `book.html`:
+Add new `<section class="page">` elements to `input/book.html`:
 
 ```html
 <section class="page content-page" data-page-type="custom">
@@ -330,7 +358,7 @@ npx puppeteer browsers install chrome
 npx @vivliostyle/cli info
 
 # Run with verbose logging
-npx @vivliostyle/cli build book.html -o test.pdf --log-level debug
+npx @vivliostyle/cli build input/book.html -o test.pdf --log-level debug
 ```
 
 ### PDF/X Conversion Issues

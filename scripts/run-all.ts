@@ -11,36 +11,32 @@
  */
 
 import { $ } from "bun";
-import { existsSync, mkdirSync } from "node:fs";
-import { join, dirname } from "node:path";
+import { existsSync, mkdirSync, readdirSync } from "node:fs";
+import { join, dirname, basename } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { buildWithPagedJS } from "./build-pagedjs.ts";
-import { buildWithVivliostyle } from "./build-vivliostyle.ts";
-import { convertToPdfx } from "./convert-pdfx.ts";
-import { runComparison } from "./compare-pdfs.ts";
+import { processBatch } from "./batch-process.ts";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
 
-interface PipelineResult {
+type ProjectRunResult = {
+  name: string;
+  inputDir: string;
+  outputDir: string;
+  duration: number;
   success: boolean;
-  pagedjs: {
-    buildSuccess: boolean;
-    buildDuration: number;
-    convertSuccess: boolean;
-    convertDuration: number;
-    errors: string[];
-  };
-  vivliostyle: {
-    buildSuccess: boolean;
-    buildDuration: number;
-    convertSuccess: boolean;
-    convertDuration: number;
-    errors: string[];
-  };
-  reportPath: string | null;
+  pagedjs: { build: boolean; convert: boolean };
+  vivliostyle: { build: boolean; convert: boolean };
+  errors: string[];
+};
+
+interface BatchPipelineResult {
+  success: boolean;
+  projects: ProjectRunResult[];
   totalDuration: number;
+  outputBaseDir: string;
+  summaryPath: string | null;
 }
 
 async function checkDependencies(): Promise<{ ok: boolean; missing: string[] }> {
@@ -88,191 +84,197 @@ async function runPipeline(options: {
   skipVivliostyle?: boolean;
   skipConvert?: boolean;
   skipCompare?: boolean;
-}): Promise<PipelineResult> {
+}): Promise<BatchPipelineResult> {
   const startTime = performance.now();
 
-  const result: PipelineResult = {
-    success: true,
-    pagedjs: {
-      buildSuccess: false,
-      buildDuration: 0,
-      convertSuccess: false,
-      convertDuration: 0,
-      errors: [],
-    },
-    vivliostyle: {
-      buildSuccess: false,
-      buildDuration: 0,
-      convertSuccess: false,
-      convertDuration: 0,
-      errors: [],
-    },
-    reportPath: null,
-    totalDuration: 0,
-  };
-
-  const outputDir = join(ROOT, "output");
-  if (!existsSync(outputDir)) {
-    mkdirSync(outputDir, { recursive: true });
+  const outputBaseDir =
+    process.env.OUTPUT_DIR && process.env.OUTPUT_DIR.trim().length > 0
+      ? process.env.OUTPUT_DIR
+      : join(ROOT, "output");
+  if (!existsSync(outputBaseDir)) {
+    mkdirSync(outputBaseDir, { recursive: true });
   }
 
-  const inputHtml = join(ROOT, "book.html");
+  const envInputDir =
+    process.env.INPUT_DIR && process.env.INPUT_DIR.trim().length > 0
+      ? process.env.INPUT_DIR
+      : null;
 
-  // Verify input exists
-  if (!existsSync(inputHtml)) {
-    console.error("\n❌ Error: book.html not found!");
-    result.success = false;
-    return result;
+  const envDirHasContent = (dir: string): boolean => {
+    try {
+      return existsSync(dir) && readdirSync(dir).length > 0;
+    } catch {
+      return false;
+    }
+  };
+
+  const inputDir = envInputDir ?? join(ROOT, "input");
+  let usingBundledDefault = envInputDir === null;
+  if (!usingBundledDefault && envInputDir && !envDirHasContent(envInputDir)) {
+    usingBundledDefault = true;
+  }
+
+  const hasHtmlFiles = (dir: string): boolean => {
+    try {
+      return readdirSync(dir).some((f) => f.toLowerCase().endsWith(".html"));
+    } catch {
+      return false;
+    }
+  };
+
+  const listSubdirs = (dir: string): string[] => {
+    try {
+      return readdirSync(dir, { withFileTypes: true })
+        .filter((d) => d.isDirectory())
+        .map((d) => join(dir, d.name));
+    } catch {
+      return [];
+    }
+  };
+
+  const projectsToProcess: Array<{ name: string; dir: string }> = [];
+
+  if (usingBundledDefault) {
+    projectsToProcess.push({ name: "default-test", dir: join(ROOT, "input") });
+  } else {
+    const inputIsProject = existsSync(inputDir) && hasHtmlFiles(inputDir);
+    if (inputIsProject) {
+      projectsToProcess.push({ name: "project", dir: inputDir });
+    } else {
+      // Process each subdirectory as a separate project if it contains HTML files
+      for (const subdir of listSubdirs(inputDir)) {
+        if (hasHtmlFiles(subdir)) {
+          projectsToProcess.push({ name: basename(subdir), dir: subdir });
+        }
+      }
+
+      // Also allow HTML files directly in the input root (docker-entrypoint calls this "root")
+      if (hasHtmlFiles(inputDir)) {
+        projectsToProcess.push({ name: "root", dir: inputDir });
+      }
+    }
+  }
+
+  if (projectsToProcess.length === 0 && !usingBundledDefault) {
+    // Mirror docker-entrypoint behavior: if a mounted INPUT_DIR doesn't contain
+    // any valid projects, fall back to the bundled default test document.
+    usingBundledDefault = true;
+    projectsToProcess.push({ name: "default-test", dir: join(ROOT, "input") });
+  }
+
+  if (projectsToProcess.length === 0) {
+    console.error("\n❌ Error: No HTML projects found!");
+    console.error(`   INPUT_DIR: ${inputDir}`);
+    console.error("   Expected either: (a) HTML files in INPUT_DIR, or (b) subdirectories each containing HTML.");
+    return {
+      success: false,
+      projects: [],
+      totalDuration: performance.now() - startTime,
+      outputBaseDir,
+      summaryPath: null,
+    };
   }
 
   console.log(`\n${"=".repeat(60)}`);
   console.log(`   PDFX TEST HARNESS`);
   console.log(`${"=".repeat(60)}`);
-  console.log(`\n📄 Input: ${inputHtml}`);
-  console.log(`📁 Output: ${outputDir}\n`);
+  console.log(`\n📁 Input base: ${inputDir}`);
+  console.log(`📁 Output base: ${outputBaseDir}`);
+  console.log(`📦 Projects: ${projectsToProcess.map((p) => p.name).join(", ")}`);
 
-  // Step 1: Build with PagedJS
-  if (!options.skipPagedJS) {
-    console.log(`\n${"─".repeat(40)}`);
-    console.log(`STEP 1: Build with PagedJS CLI`);
-    console.log(`${"─".repeat(40)}`);
+  const projects: ProjectRunResult[] = [];
+  for (const project of projectsToProcess) {
+    const projectStart = performance.now();
+    const projectOutputDir = join(outputBaseDir, project.name);
 
-    const pjResult = await buildWithPagedJS({
-      input: inputHtml,
-      output: join(outputDir, "pagedjs-output.pdf"),
-      timeout: 120000,
+    const batchResult = await processBatch({
+      inputDir: project.dir,
+      outputDir: projectOutputDir,
+      htmlFile: "book.html",
+      skipPagedJS: Boolean(options.skipPagedJS),
+      skipVivliostyle: Boolean(options.skipVivliostyle),
+      skipConvert: Boolean(options.skipConvert),
+      skipCompare: Boolean(options.skipCompare),
     });
 
-    result.pagedjs.buildSuccess = pjResult.success;
-    result.pagedjs.buildDuration = pjResult.duration;
-    if (pjResult.error) {
-      result.pagedjs.errors.push(pjResult.error);
-    }
-  } else {
-    console.log("\n⏭️  Skipping PagedJS build");
-  }
-
-  // Step 2: Build with Vivliostyle
-  if (!options.skipVivliostyle) {
-    console.log(`\n${"─".repeat(40)}`);
-    console.log(`STEP 2: Build with Vivliostyle CLI`);
-    console.log(`${"─".repeat(40)}`);
-
-    const vsResult = await buildWithVivliostyle({
-      input: inputHtml,
-      output: join(outputDir, "vivliostyle-output.pdf"),
-      timeout: 120000,
+    projects.push({
+      name: project.name,
+      inputDir: project.dir,
+      outputDir: projectOutputDir,
+      duration: performance.now() - projectStart,
+      success: batchResult.success,
+      pagedjs: batchResult.pagedjs,
+      vivliostyle: batchResult.vivliostyle,
+      errors: batchResult.errors,
     });
-
-    result.vivliostyle.buildSuccess = vsResult.success;
-    result.vivliostyle.buildDuration = vsResult.duration;
-    if (vsResult.error) {
-      result.vivliostyle.errors.push(vsResult.error);
-    }
-  } else {
-    console.log("\n⏭️  Skipping Vivliostyle build");
   }
 
-  // Step 3: Convert to PDF/X
-  if (!options.skipConvert) {
-    console.log(`\n${"─".repeat(40)}`);
-    console.log(`STEP 3: Convert to PDF/X (Ghostscript)`);
-    console.log(`${"─".repeat(40)}`);
+  // Write a summary report (matches docker-entrypoint behavior)
+  const summaryPath = join(outputBaseDir, "batch-summary.md");
+  try {
+    const lines: string[] = [];
+    lines.push("# PDFX Test Harness - Batch Summary");
+    lines.push("");
+    lines.push(`**Generated:** ${new Date().toISOString()}`);
+    lines.push("");
+    lines.push("## Projects Processed");
+    lines.push("");
 
-    // Convert PagedJS output
-    if (result.pagedjs.buildSuccess || existsSync(join(outputDir, "pagedjs-output.pdf"))) {
-      const pjConvert = await convertToPdfx({
-        input: join(outputDir, "pagedjs-output.pdf"),
-        output: join(outputDir, "pagedjs-pdfx.pdf"),
-        title: "PagedJS Test Output",
-      });
-      result.pagedjs.convertSuccess = pjConvert.success;
-      result.pagedjs.convertDuration = pjConvert.duration;
-      if (pjConvert.error) {
-        result.pagedjs.errors.push(pjConvert.error);
+    for (const p of projects) {
+      const status = p.success ? "✅ Complete" : "❌ Failed";
+      lines.push(`### ${p.name}`);
+      lines.push("");
+      lines.push(`- **Status:** ${status}`);
+      lines.push(`- **Input:** ${p.inputDir}`);
+      lines.push(`- **Output:** ./${p.name}`);
+
+      const pjBuildStatus = options.skipPagedJS ? "⏭️" : p.pagedjs.build ? "✅" : "❌";
+      const pjConvertStatus =
+        options.skipPagedJS || options.skipConvert ? "⏭️" : p.pagedjs.convert ? "✅" : "❌";
+      const vsBuildStatus = options.skipVivliostyle ? "⏭️" : p.vivliostyle.build ? "✅" : "❌";
+      const vsConvertStatus =
+        options.skipVivliostyle || options.skipConvert ? "⏭️" : p.vivliostyle.convert ? "✅" : "❌";
+
+      lines.push(`- **PagedJS:** build=${pjBuildStatus}, pdfx=${pjConvertStatus}`);
+      lines.push(`- **Vivliostyle:** build=${vsBuildStatus}, pdfx=${vsConvertStatus}`);
+
+      const reportCandidate = join(p.outputDir, "comparison-report.md");
+      if (existsSync(reportCandidate)) {
+        lines.push(`- **Report:** [comparison-report.md](./${p.name}/comparison-report.md)`);
       }
-    }
 
-    // Convert Vivliostyle output
-    if (result.vivliostyle.buildSuccess || existsSync(join(outputDir, "vivliostyle-output.pdf"))) {
-      const vsConvert = await convertToPdfx({
-        input: join(outputDir, "vivliostyle-output.pdf"),
-        output: join(outputDir, "vivliostyle-pdfx.pdf"),
-        title: "Vivliostyle Test Output",
-      });
-      result.vivliostyle.convertSuccess = vsConvert.success;
-      result.vivliostyle.convertDuration = vsConvert.duration;
-      if (vsConvert.error) {
-        result.vivliostyle.errors.push(vsConvert.error);
+      if (p.errors.length > 0) {
+        lines.push("- **Errors:**");
+        for (const e of p.errors) {
+          lines.push(`  - ${e}`);
+        }
       }
+
+      lines.push("");
     }
-  } else {
-    console.log("\n⏭️  Skipping PDF/X conversion");
+
+    await Bun.write(summaryPath, lines.join("\n"));
+  } catch {
+    // Non-fatal
   }
 
-  // Step 4: Validate and Compare
-  if (!options.skipCompare) {
-    console.log(`\n${"─".repeat(40)}`);
-    console.log(`STEP 4: Validate and Compare`);
-    console.log(`${"─".repeat(40)}`);
-
-    try {
-      const comparison = await runComparison();
-      result.reportPath = join(ROOT, "reports", "comparison-report.md");
-    } catch (error) {
-      console.error(`   ❌ Comparison failed: ${error}`);
-    }
-  } else {
-    console.log("\n⏭️  Skipping comparison");
-  }
-
-  // Summary
-  result.totalDuration = performance.now() - startTime;
+  const totalDuration = performance.now() - startTime;
+  const overallSuccess = projects.every((p) => p.success);
 
   console.log(`\n${"=".repeat(60)}`);
   console.log(`   PIPELINE COMPLETE`);
   console.log(`${"=".repeat(60)}`);
-  console.log(`\n📊 Results Summary:`);
-  console.log(`\n   PagedJS:`);
-  console.log(`      Build: ${result.pagedjs.buildSuccess ? "✅" : "❌"} (${(result.pagedjs.buildDuration / 1000).toFixed(2)}s)`);
-  console.log(`      PDF/X: ${result.pagedjs.convertSuccess ? "✅" : "❌"} (${(result.pagedjs.convertDuration / 1000).toFixed(2)}s)`);
+  console.log(`\n📊 Overall: ${overallSuccess ? "✅ SUCCESS" : "❌ FAIL"}`);
+  console.log(`⏱️  Total Time: ${(totalDuration / 1000).toFixed(2)}s`);
+  console.log(`📄 Summary: ${summaryPath}`);
 
-  console.log(`\n   Vivliostyle:`);
-  console.log(`      Build: ${result.vivliostyle.buildSuccess ? "✅" : "❌"} (${(result.vivliostyle.buildDuration / 1000).toFixed(2)}s)`);
-  console.log(`      PDF/X: ${result.vivliostyle.convertSuccess ? "✅" : "❌"} (${(result.vivliostyle.convertDuration / 1000).toFixed(2)}s)`);
-
-  console.log(`\n   Total Time: ${(result.totalDuration / 1000).toFixed(2)}s`);
-
-  if (result.reportPath) {
-    console.log(`\n📄 Report: ${result.reportPath}`);
-  }
-
-  // List generated files
-  console.log(`\n📁 Generated Files:`);
-  const expectedFiles = [
-    "pagedjs-output.pdf",
-    "pagedjs-pdfx.pdf",
-    "vivliostyle-output.pdf",
-    "vivliostyle-pdfx.pdf",
-  ];
-
-  for (const file of expectedFiles) {
-    const filepath = join(outputDir, file);
-    if (existsSync(filepath)) {
-      const stats = await Bun.file(filepath).stat();
-      const size = ((stats?.size ?? 0) / 1024).toFixed(1);
-      console.log(`   ✅ ${file} (${size} KB)`);
-    } else {
-      console.log(`   ❌ ${file} (not created)`);
-    }
-  }
-
-  // Check overall success
-  result.success =
-    (result.pagedjs.buildSuccess || options.skipPagedJS) &&
-    (result.vivliostyle.buildSuccess || options.skipVivliostyle);
-
-  return result;
+  return {
+    success: overallSuccess,
+    projects,
+    totalDuration,
+    outputBaseDir,
+    summaryPath,
+  };
 }
 
 // Parse CLI arguments
@@ -340,11 +342,17 @@ Examples:
   bun run scripts/run-all.ts --skip-convert     # Compare RGB PDFs only
 
 Output:
-  output/pagedjs-output.pdf       PagedJS RGB PDF
-  output/pagedjs-pdfx.pdf         PagedJS PDF/X
-  output/vivliostyle-output.pdf   Vivliostyle RGB PDF
-  output/vivliostyle-pdfx.pdf     Vivliostyle PDF/X
-  reports/comparison-report.md    Detailed comparison report
+  OUTPUT_DIR/batch-summary.md
+  OUTPUT_DIR/<project>/pagedjs-output.pdf
+  OUTPUT_DIR/<project>/pagedjs-pdfx.pdf
+  OUTPUT_DIR/<project>/vivliostyle-output.pdf
+  OUTPUT_DIR/<project>/vivliostyle-pdfx.pdf
+  OUTPUT_DIR/<project>/comparison-report.md
+
+Input discovery:
+  - If INPUT_DIR is unset: uses bundled ./input and outputs to ./output/default-test
+  - If INPUT_DIR contains HTML files: runs as a single project ("project")
+  - If INPUT_DIR contains subfolders with HTML files: runs each subfolder as a project
 `);
 }
 

@@ -79,7 +79,7 @@ kitchen-sink: install
 
 # Clean generated files
 clean:
-	rm -rf output/* reports/* node_modules/
+	rm -rf output/* node_modules/
 
 clean-docker:
 	docker rmi pdfx-test-harness || true

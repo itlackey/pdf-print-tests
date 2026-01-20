@@ -334,18 +334,37 @@ export async function convertToPdfxTwoPass(options: ConvertOptions): Promise<{
 // Run if called directly
 if (import.meta.main) {
   const args = process.argv.slice(2);
+  const dirFlagIndex = args.findIndex((a) => a === "--dir" || a === "--output");
+  const dir = dirFlagIndex >= 0 ? args[dirFlagIndex + 1] : undefined;
+  const remainingArgs = dirFlagIndex >= 0
+    ? args.filter((_, idx) => idx !== dirFlagIndex && idx !== dirFlagIndex + 1)
+    : args;
   
-  if (args.length < 2) {
-    // Default: convert both PagedJS and Vivliostyle outputs
+  if (remainingArgs.length < 2) {
+    // Default: convert both PagedJS and Vivliostyle outputs in a project output directory
+    const outputDirCandidate =
+      dir ??
+      (process.env.OUTPUT_DIR && process.env.OUTPUT_DIR.trim().length > 0
+        ? process.env.OUTPUT_DIR
+        : join(ROOT, "output", "default-test"));
+
+    // Back-compat: if OUTPUT_DIR/default-test doesn't exist but OUTPUT_DIR contains PDFs, use it.
+    const projectOutputDir = existsSync(join(outputDirCandidate, "pagedjs-output.pdf")) ||
+      existsSync(join(outputDirCandidate, "vivliostyle-output.pdf"))
+      ? outputDirCandidate
+      : existsSync(join(ROOT, "output"))
+        ? join(ROOT, "output")
+        : outputDirCandidate;
+
     const pdfs = [
       {
-        input: join(ROOT, "output", "pagedjs-output.pdf"),
-        output: join(ROOT, "output", "pagedjs-pdfx.pdf"),
+        input: join(projectOutputDir, "pagedjs-output.pdf"),
+        output: join(projectOutputDir, "pagedjs-pdfx.pdf"),
         title: "PagedJS PDF/X Output",
       },
       {
-        input: join(ROOT, "output", "vivliostyle-output.pdf"),
-        output: join(ROOT, "output", "vivliostyle-pdfx.pdf"),
+        input: join(projectOutputDir, "vivliostyle-output.pdf"),
+        output: join(projectOutputDir, "vivliostyle-pdfx.pdf"),
         title: "Vivliostyle PDF/X Output",
       },
     ];
@@ -358,7 +377,7 @@ if (import.meta.main) {
       }
     }
   } else {
-    const [input, output] = args;
+    const [input, output] = remainingArgs;
     await convertToPdfx({ input, output });
   }
 

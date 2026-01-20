@@ -12,7 +12,7 @@
     "batch": "bun run scripts/batch-process.ts",
     "test": "bun run scripts/run-all.ts",
     "test:kitchen-sink": "bun run scripts/batch-process.ts --input examples --output output/kitchen-sink --html kitchen-sink.html",
-    "clean": "rm -rf output/* reports/*"
+    "clean": "rm -rf output/*"
   },
   "dependencies": {
     "pagedjs-cli": "^0.4.3",
