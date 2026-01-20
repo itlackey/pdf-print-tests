@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TTRPG Layout Test - PagedJS vs Vivliostyle</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- PAGE 1: Title Page with Full Bleed Background -->
+  <section class="page title-page" data-page-type="title">
+    <div class="bleed-background"></div>
+    <div class="title-content">
+      <div class="logo-container">
+        <div class="logo-shape"></div>
+      </div>
+      <h1 class="book-title">SHADOWS OF THE<br>FORGOTTEN REALM</h1>
+      <p class="subtitle">A Complete Roleplaying Adventure</p>
+      <div class="byline">
+        <p>Written by <span class="author">Test Author</span></p>
+        <p class="edition">First Edition • 2025</p>
+      </div>
+      <div class="bottom-ornament"></div>
+    </div>
+  </section>
+
+  <!-- PAGE 2: Two-Column Text with Circular Image Float -->
+  <section class="page content-page" data-page-type="content">
+    <div class="running-header">
+      <span class="running-title">Chapter One: The Beginning</span>
+      <span class="page-number"></span>
+    </div>
+    
+    <h2 class="chapter-title">Chapter One<br><span class="chapter-subtitle">The Beginning</span></h2>
+    
+    <div class="two-column">
+      <div class="circle-float">
+        <div class="circle-image" aria-label="Decorative circular illustration">
+          <div class="inner-design"></div>
+        </div>
+      </div>
+      <p class="drop-cap">T</p><p class="first-paragraph">he ancient tome lay open upon the weathered oak table, its yellowed pages crackling with each turn. Strange symbols danced across the parchment, seeming to shift and writhe in the flickering candlelight that cast long shadows across the chamber walls.</p>
+      
+      <p>For generations, the scholars of Valdris had sought to decipher the cryptic writings contained within these pages. Many had gone mad in the attempt, their minds shattered by revelations too terrible for mortal comprehension. Yet still they came, drawn by the promise of forbidden knowledge.</p>
+      
+      <p>The keeper of the archive—an elderly woman known only as the Chronicler—watched from the doorway as the young adventurer traced the symbols with trembling fingers. She had seen this scene play out countless times before, and she knew well how it would end.</p>
+      
+      <p>"You seek answers that were never meant to be found," she said, her voice dry as the dust that coated the shelves around them. "The Forgotten Realm guards its secrets jealously."</p>
+      
+      <p>But the adventurer did not turn. Could not turn. The symbols had already begun their work, burrowing into consciousness like parasites of pure information, rewriting thought itself into patterns that served only darkness.</p>
+    </div>
+  </section>
+
+  <!-- PAGE 3: Stat Block with Diamond-Shaped Image Float -->
+  <section class="page content-page" data-page-type="monsters">
+    <div class="running-header">
+      <span class="running-title">Bestiary</span>
+      <span class="page-number"></span>
+    </div>
+    
+    <h2 class="section-title">Creatures of the Void</h2>
+    
+    <div class="stat-block">
+      <div class="stat-header">
+        <h3 class="creature-name">Shadow Wraith</h3>
+        <p class="creature-type">Medium Undead, Chaotic Evil</p>
+      </div>
+      
+      <div class="stat-divider"></div>
+      
+      <div class="stat-row">
+        <div class="stat-item"><strong>Armor Class</strong> 14 (natural armor)</div>
+        <div class="stat-item"><strong>Hit Points</strong> 45 (6d8 + 18)</div>
+        <div class="stat-item"><strong>Speed</strong> 0 ft., fly 50 ft. (hover)</div>
+      </div>
+      
+      <div class="stat-divider"></div>
+      
+      <table class="ability-scores">
+        <tr>
+          <th>STR</th><th>DEX</th><th>CON</th><th>INT</th><th>WIS</th><th>CHA</th>
+        </tr>
+        <tr>
+          <td>6 (-2)</td><td>16 (+3)</td><td>16 (+3)</td><td>12 (+1)</td><td>14 (+2)</td><td>15 (+2)</td>
+        </tr>
+      </table>
+      
+      <div class="stat-divider"></div>
+      
+      <div class="stat-abilities">
+        <p><strong>Damage Resistances</strong> acid, cold, fire, lightning, thunder; bludgeoning, piercing, and slashing from nonmagical attacks</p>
+        <p><strong>Damage Immunities</strong> necrotic, poison</p>
+        <p><strong>Condition Immunities</strong> charmed, exhaustion, grappled, paralyzed, petrified, poisoned, prone, restrained</p>
+        <p><strong>Senses</strong> darkvision 60 ft., passive Perception 12</p>
+        <p><strong>Languages</strong> understands the languages it knew in life but can't speak</p>
+        <p><strong>Challenge</strong> 5 (1,800 XP)</p>
+      </div>
+    </div>
+    
+    <div class="diamond-float">
+      <div class="diamond-image" aria-label="Shadow Wraith illustration"></div>
+    </div>
+    
+    <div class="abilities-section">
+      <h4>Traits</h4>
+      <p><strong><em>Incorporeal Movement.</em></strong> The wraith can move through other creatures and objects as if they were difficult terrain. It takes 5 (1d10) force damage if it ends its turn inside an object.</p>
+      <p><strong><em>Sunlight Sensitivity.</em></strong> While in sunlight, the wraith has disadvantage on attack rolls, as well as on Wisdom (Perception) checks that rely on sight.</p>
+      
+      <h4>Actions</h4>
+      <p><strong><em>Life Drain.</em></strong> <em>Melee Weapon Attack:</em> +6 to hit, reach 5 ft., one creature. <em>Hit:</em> 21 (4d8 + 3) necrotic damage. The target must succeed on a DC 14 Constitution saving throw or its hit point maximum is reduced by an amount equal to the damage taken.</p>
+    </div>
+  </section>
+
+  <!-- PAGE 4: Map Legend with Polygon Text Wrap -->
+  <section class="page content-page" data-page-type="map">
+    <div class="running-header">
+      <span class="running-title">The Dungeon of Whispers</span>
+      <span class="page-number"></span>
+    </div>
+    
+    <h2 class="section-title">Dungeon Overview</h2>
+    
+    <div class="map-container">
+      <div class="map-placeholder">
+        <div class="room room-1">1</div>
+        <div class="room room-2">2</div>
+        <div class="room room-3">3</div>
+        <div class="room room-4">4</div>
+        <div class="room room-5">5</div>
+        <div class="corridor corridor-h-1"></div>
+        <div class="corridor corridor-h-2"></div>
+        <div class="corridor corridor-v-1"></div>
+      </div>
+      
+      <div class="arrow-float">
+        <div class="compass-arrow" aria-label="Compass indicator"></div>
+      </div>
+    </div>
+    
+    <div class="room-descriptions">
+      <div class="room-entry">
+        <h4>1. Entrance Hall</h4>
+        <p class="room-dimensions">40 ft. × 30 ft.</p>
+        <p>Crumbling stone pillars line this dusty chamber. The air is thick with the scent of decay and something else—something ancient and malevolent. Perception DC 15 reveals hidden runes on the eastern wall.</p>
+      </div>
+      
+      <div class="room-entry">
+        <h4>2. Guard Room</h4>
+        <p class="room-dimensions">20 ft. × 20 ft.</p>
+        <p>Rusted weapon racks line the walls. Two <strong>Shadow Wraiths</strong> patrol this area. A locked chest (DC 18) contains 120 gp and a <em>Potion of Healing</em>.</p>
+      </div>
+      
+      <div class="room-entry">
+        <h4>3. The Whispering Chamber</h4>
+        <p class="room-dimensions">50 ft. × 40 ft.</p>
+        <p>Voices echo from nowhere and everywhere at once. Characters must succeed on a DC 14 Wisdom save or become <em>frightened</em> for 1 minute. The center holds the <strong>Altar of Forgotten Names</strong>.</p>
+      </div>
+      
+      <div class="room-entry">
+        <h4>4. Treasury</h4>
+        <p class="room-dimensions">15 ft. × 15 ft.</p>
+        <p>Behind a trapped door (Investigation DC 16, 4d6 poison damage) lies the accumulated wealth of the cult: 850 gp, gems worth 200 gp, and the <em>Staff of Shadows</em>.</p>
+      </div>
+      
+      <div class="room-entry">
+        <h4>5. The Ritual Chamber</h4>
+        <p class="room-dimensions">60 ft. diameter</p>
+        <p>This circular chamber houses the final confrontation with the <strong>Cult Leader Varraxis</strong> and their two <strong>Acolyte</strong> servants. The ritual circle in the center pulses with dark energy.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- PAGE 5: Sidebar with Inset Text Box and Custom Shape -->
+  <section class="page content-page" data-page-type="rules">
+    <div class="running-header">
+      <span class="running-title">Appendix A: Optional Rules</span>
+      <span class="page-number"></span>
+    </div>
+    
+    <h2 class="section-title">Variant Rules</h2>
+    
+    <div class="rule-section">
+      <div class="scroll-float">
+        <div class="scroll-shape" aria-label="Decorative scroll"></div>
+      </div>
+      
+      <h3>Darkness & Light</h3>
+      <p>In the Forgotten Realm, darkness is more than mere absence of light—it is a living force that hungers for the warmth of mortal souls. These variant rules emphasize the importance of light sources and the dangers of traveling through shadow-touched lands.</p>
+      
+      <div class="callout-box">
+        <div class="callout-header">Designer's Note</div>
+        <p>These rules increase the difficulty significantly. We recommend using them only for experienced groups who want a more challenging, horror-focused experience.</p>
+      </div>
+      
+      <h4>Torch Duration</h4>
+      <p>In areas touched by shadow magic, torches burn for only half their normal duration. Magical light sources function normally unless specified otherwise in the area description.</p>
+      
+      <h4>Extended Darkness</h4>
+      <p>Characters who spend more than 1 hour in complete darkness without a light source must succeed on a DC 12 Wisdom saving throw or gain one level of <em>Dread</em> (see Dread Conditions, below).</p>
+      
+      <div class="table-wrapper">
+        <table class="rules-table">
+          <caption>Dread Conditions</caption>
+          <thead>
+            <tr>
+              <th>Level</th>
+              <th>Effect</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td>Disadvantage on ability checks</td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td>Speed halved</td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td>Disadvantage on attack rolls and saving throws</td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td>Hit point maximum halved</td>
+            </tr>
+            <tr>
+              <td>5</td>
+              <td>Speed reduced to 0</td>
+            </tr>
+            <tr>
+              <td>6</td>
+              <td>The character becomes a Shadow Wraith under the GM's control</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <p>Dread can be removed by completing a long rest in an area of bright light, or by the <em>greater restoration</em> spell.</p>
+      
+      <div class="page-reference">
+        <p>For more information on light sources and darkness, see the <em>Core Rulebook</em>, pages 183-185.</p>
+      </div>
+    </div>
+  </section>
+</body>
+</html>

@@ -1,0 +1,798 @@
+/* ==========================================================================
+   TTRPG Print Layout Test - CSS Paged Media Stylesheet
+   Designed for comparison testing: PagedJS vs Vivliostyle
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   CSS Variables - Print Specifications
+   -------------------------------------------------------------------------- */
+:root {
+  /* Trim Size: 6x9 inches (standard trade paperback) */
+  --trim-width: 6in;
+  --trim-height: 9in;
+  --bleed: 0.125in;
+  
+  /* Page dimensions including bleed */
+  --page-width: calc(var(--trim-width) + var(--bleed) * 2);
+  --page-height: calc(var(--trim-height) + var(--bleed) * 2);
+  
+  /* Margins */
+  --margin-inside: 0.625in;  /* Gutter for binding */
+  --margin-outside: 0.5in;
+  --margin-top: 0.625in;
+  --margin-bottom: 0.75in;
+  
+  /* Colors - Using CMYK-safe values */
+  /* Rich Black for headers */
+  --color-rich-black: #0a0a0a;
+  /* Pure Black for body text */
+  --color-pure-black: #000000;
+  /* Accent colors */
+  --color-primary: #8B0000;      /* Dark Red */
+  --color-secondary: #2F4F4F;    /* Dark Slate Gray */
+  --color-accent: #B8860B;       /* Dark Goldenrod */
+  --color-background: #F5F5DC;   /* Beige */
+  --color-paper: #FFFEF0;        /* Off-white */
+  
+  /* Typography */
+  --font-heading: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+  --font-body: 'Garamond', 'Times New Roman', Times, serif;
+  --font-mono: 'Courier New', Courier, monospace;
+  
+  /* Base font size for print */
+  --font-size-base: 10pt;
+  --line-height-base: 1.4;
+}
+
+/* --------------------------------------------------------------------------
+   @page Rules - Page Setup
+   -------------------------------------------------------------------------- */
+@page {
+  size: var(--page-width) var(--page-height);
+  margin: 0;
+  marks: crop cross;
+  bleed: var(--bleed);
+}
+
+/* Named pages for different sections */
+@page title {
+  margin: 0;
+  @top-center { content: none; }
+  @bottom-center { content: none; }
+}
+
+@page content {
+  margin: var(--margin-top) var(--margin-outside) var(--margin-bottom) var(--margin-inside);
+  @top-center {
+    content: element(runningHeader);
+  }
+  @bottom-center {
+    content: counter(page);
+    font-family: var(--font-body);
+    font-size: 10pt;
+  }
+}
+
+@page content:right {
+  margin: var(--margin-top) var(--margin-outside) var(--margin-bottom) var(--margin-inside);
+}
+
+@page content:left {
+  margin: var(--margin-top) var(--margin-inside) var(--margin-bottom) var(--margin-outside);
+}
+
+/* --------------------------------------------------------------------------
+   Base Styles
+   -------------------------------------------------------------------------- */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-body);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-base);
+  color: var(--color-pure-black);
+  background: white;
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+}
+
+/* --------------------------------------------------------------------------
+   Page Structure
+   -------------------------------------------------------------------------- */
+.page {
+  width: var(--page-width);
+  height: var(--page-height);
+  position: relative;
+  overflow: hidden;
+  page-break-after: always;
+  break-after: page;
+  background: var(--color-paper);
+}
+
+.page:last-child {
+  page-break-after: auto;
+  break-after: auto;
+}
+
+/* Content padding accounts for bleed */
+.content-page {
+  page: content;
+  padding: calc(var(--margin-top) + var(--bleed)) 
+           calc(var(--margin-outside) + var(--bleed)) 
+           calc(var(--margin-bottom) + var(--bleed)) 
+           calc(var(--margin-inside) + var(--bleed));
+}
+
+/* --------------------------------------------------------------------------
+   PAGE 1: Title Page
+   -------------------------------------------------------------------------- */
+.title-page {
+  page: title;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  background: linear-gradient(180deg, 
+    #1a1a2e 0%, 
+    #16213e 50%, 
+    #0f0f23 100%);
+  color: var(--color-paper);
+}
+
+.bleed-background {
+  position: absolute;
+  top: calc(var(--bleed) * -1);
+  left: calc(var(--bleed) * -1);
+  right: calc(var(--bleed) * -1);
+  bottom: calc(var(--bleed) * -1);
+  background: linear-gradient(180deg, 
+    #1a1a2e 0%, 
+    #16213e 50%, 
+    #0f0f23 100%);
+  z-index: 0;
+}
+
+.title-content {
+  position: relative;
+  z-index: 1;
+  padding: 1in;
+}
+
+.logo-container {
+  margin-bottom: 0.5in;
+}
+
+.logo-shape {
+  width: 1.5in;
+  height: 1.5in;
+  margin: 0 auto;
+  background: var(--color-accent);
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  box-shadow: 0 0 30px rgba(184, 134, 11, 0.5);
+}
+
+.book-title {
+  font-family: var(--font-heading);
+  font-size: 32pt;
+  font-weight: bold;
+  letter-spacing: 0.1em;
+  line-height: 1.2;
+  margin-bottom: 0.25in;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.subtitle {
+  font-family: var(--font-body);
+  font-size: 14pt;
+  font-style: italic;
+  margin-bottom: 0.75in;
+  opacity: 0.9;
+}
+
+.byline {
+  font-size: 11pt;
+}
+
+.byline .author {
+  font-weight: bold;
+}
+
+.byline .edition {
+  margin-top: 0.125in;
+  font-size: 10pt;
+  opacity: 0.8;
+}
+
+.bottom-ornament {
+  width: 2in;
+  height: 3pt;
+  margin: 0.75in auto 0;
+  background: var(--color-accent);
+  border-radius: 2pt;
+}
+
+/* --------------------------------------------------------------------------
+   Running Headers
+   -------------------------------------------------------------------------- */
+.running-header {
+  position: running(runningHeader);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--font-heading);
+  font-size: 9pt;
+  font-variant: small-caps;
+  letter-spacing: 0.05em;
+  color: var(--color-secondary);
+  border-bottom: 0.5pt solid var(--color-secondary);
+  padding-bottom: 4pt;
+  margin-bottom: 0.25in;
+}
+
+.running-title {
+  string-set: chapterTitle content();
+}
+
+.page-number::after {
+  content: counter(page);
+}
+
+/* --------------------------------------------------------------------------
+   Typography
+   -------------------------------------------------------------------------- */
+h1, h2, h3, h4 {
+  font-family: var(--font-heading);
+  color: var(--color-rich-black);
+  page-break-after: avoid;
+  break-after: avoid;
+}
+
+h2.chapter-title {
+  font-size: 28pt;
+  text-align: center;
+  margin-bottom: 0.375in;
+  color: var(--color-primary);
+}
+
+.chapter-subtitle {
+  font-size: 16pt;
+  font-style: italic;
+  font-weight: normal;
+  display: block;
+  margin-top: 0.125in;
+}
+
+h2.section-title {
+  font-size: 20pt;
+  color: var(--color-primary);
+  margin-bottom: 0.25in;
+  padding-bottom: 0.125in;
+  border-bottom: 2pt solid var(--color-primary);
+}
+
+h3 {
+  font-size: 14pt;
+  margin-top: 0.25in;
+  margin-bottom: 0.125in;
+}
+
+h4 {
+  font-size: 11pt;
+  margin-top: 0.1875in;
+  margin-bottom: 0.0625in;
+  color: var(--color-secondary);
+}
+
+p {
+  margin-bottom: 0.125in;
+  text-align: justify;
+  hyphens: auto;
+  orphans: 2;
+  widows: 2;
+}
+
+strong {
+  font-weight: bold;
+}
+
+em {
+  font-style: italic;
+}
+
+/* Drop Cap */
+.drop-cap {
+  float: left;
+  font-family: var(--font-heading);
+  font-size: 48pt;
+  line-height: 0.8;
+  padding-right: 0.0625in;
+  padding-top: 0.0625in;
+  color: var(--color-primary);
+}
+
+.first-paragraph {
+  display: inline;
+}
+
+/* --------------------------------------------------------------------------
+   PAGE 2: Two-Column Layout with Circle Float
+   -------------------------------------------------------------------------- */
+.two-column {
+  column-count: 2;
+  column-gap: 0.25in;
+  column-rule: 0.5pt solid var(--color-secondary);
+}
+
+/* Circle float with shape-outside */
+.circle-float {
+  float: left;
+  width: 1.75in;
+  height: 1.75in;
+  margin: 0 0.1875in 0.125in 0;
+  shape-outside: circle(50%);
+  shape-margin: 0.125in;
+}
+
+.circle-image {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-secondary) 0%, #1a3a3a 100%);
+  border: 3pt solid var(--color-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 3pt 3pt 6pt rgba(0, 0, 0, 0.3);
+}
+
+.inner-design {
+  width: 60%;
+  height: 60%;
+  background: var(--color-accent);
+  clip-path: polygon(
+    50% 0%, 61% 35%, 98% 35%, 68% 57%, 
+    79% 91%, 50% 70%, 21% 91%, 32% 57%, 
+    2% 35%, 39% 35%
+  );
+  opacity: 0.8;
+}
+
+/* --------------------------------------------------------------------------
+   PAGE 3: Stat Block with Diamond Float
+   -------------------------------------------------------------------------- */
+.stat-block {
+  background: linear-gradient(180deg, #fdf1dc 0%, #f0e6d2 100%);
+  border: 2pt solid var(--color-primary);
+  border-radius: 3pt;
+  padding: 0.1875in;
+  margin-bottom: 0.1875in;
+  box-shadow: 2pt 2pt 4pt rgba(0, 0, 0, 0.2);
+}
+
+.stat-header {
+  text-align: center;
+  margin-bottom: 0.0625in;
+}
+
+.creature-name {
+  font-size: 18pt;
+  color: var(--color-primary);
+  margin: 0;
+}
+
+.creature-type {
+  font-size: 9pt;
+  font-style: italic;
+  margin: 0;
+}
+
+.stat-divider {
+  height: 2pt;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    var(--color-primary) 15%, 
+    var(--color-primary) 85%, 
+    transparent 100%);
+  margin: 0.125in 0;
+}
+
+.stat-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.1875in;
+  font-size: 9pt;
+}
+
+.stat-item {
+  flex: 1 1 auto;
+}
+
+.ability-scores {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 9pt;
+  text-align: center;
+  margin: 0.0625in 0;
+}
+
+.ability-scores th {
+  font-weight: bold;
+  color: var(--color-primary);
+  padding: 0.0625in;
+}
+
+.ability-scores td {
+  padding: 0.0625in;
+}
+
+.stat-abilities {
+  font-size: 9pt;
+}
+
+.stat-abilities p {
+  margin-bottom: 0.0625in;
+  text-align: left;
+}
+
+/* Diamond float with shape-outside polygon */
+.diamond-float {
+  float: right;
+  width: 2in;
+  height: 2in;
+  margin: 0.25in 0 0.125in 0.1875in;
+  shape-outside: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+  shape-margin: 0.1875in;
+}
+
+.diamond-image {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #2a2a4a 0%, #1a1a2e 50%, #0f0f23 100%);
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+  box-shadow: 4pt 4pt 8pt rgba(0, 0, 0, 0.4);
+  position: relative;
+}
+
+.diamond-image::after {
+  content: '👻';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 48pt;
+  opacity: 0.7;
+}
+
+.abilities-section {
+  clear: right;
+}
+
+.abilities-section h4 {
+  color: var(--color-primary);
+  font-size: 12pt;
+  margin-top: 0.25in;
+  border-bottom: 1pt solid var(--color-primary);
+  padding-bottom: 0.0625in;
+}
+
+.abilities-section p {
+  font-size: 9pt;
+  margin-bottom: 0.125in;
+}
+
+/* --------------------------------------------------------------------------
+   PAGE 4: Map Layout with Arrow Float
+   -------------------------------------------------------------------------- */
+.map-container {
+  position: relative;
+  margin-bottom: 0.25in;
+}
+
+.map-placeholder {
+  width: 100%;
+  height: 2.5in;
+  background: #e8dcc8;
+  border: 2pt solid var(--color-secondary);
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 0;
+  padding: 0.125in;
+}
+
+.room {
+  background: #f5efe6;
+  border: 1pt solid var(--color-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-heading);
+  font-size: 14pt;
+  font-weight: bold;
+  color: var(--color-secondary);
+}
+
+.room-1 { grid-column: 1; grid-row: 2; }
+.room-2 { grid-column: 2; grid-row: 2; }
+.room-3 { grid-column: 3; grid-row: 1 / span 2; }
+.room-4 { grid-column: 4; grid-row: 2; }
+.room-5 { grid-column: 5; grid-row: 2; }
+
+.corridor {
+  background: #c9bfae;
+}
+
+.corridor-h-1 {
+  grid-column: 1 / span 2;
+  grid-row: 3;
+  height: 0.25in;
+  align-self: start;
+}
+
+.corridor-h-2 {
+  grid-column: 4 / span 2;
+  grid-row: 1;
+  height: 0.25in;
+  align-self: end;
+}
+
+.corridor-v-1 {
+  grid-column: 3;
+  grid-row: 3;
+  width: 0.25in;
+  justify-self: center;
+}
+
+/* Arrow/Compass float with custom shape */
+.arrow-float {
+  position: absolute;
+  top: 0.125in;
+  right: 0.125in;
+  width: 0.75in;
+  height: 0.75in;
+  shape-outside: polygon(50% 0%, 100% 100%, 50% 75%, 0% 100%);
+  shape-margin: 0.0625in;
+}
+
+.compass-arrow {
+  width: 100%;
+  height: 100%;
+  background: var(--color-primary);
+  clip-path: polygon(50% 0%, 65% 25%, 55% 25%, 55% 100%, 45% 100%, 45% 25%, 35% 25%);
+  position: relative;
+}
+
+.compass-arrow::after {
+  content: 'N';
+  position: absolute;
+  top: -0.25in;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-heading);
+  font-size: 10pt;
+  font-weight: bold;
+  color: var(--color-primary);
+}
+
+/* Room descriptions */
+.room-descriptions {
+  column-count: 2;
+  column-gap: 0.25in;
+}
+
+.room-entry {
+  break-inside: avoid;
+  margin-bottom: 0.1875in;
+}
+
+.room-entry h4 {
+  font-size: 11pt;
+  color: var(--color-primary);
+  margin-bottom: 0;
+}
+
+.room-dimensions {
+  font-size: 8pt;
+  font-style: italic;
+  color: var(--color-secondary);
+  margin-bottom: 0.0625in !important;
+}
+
+.room-entry p {
+  font-size: 9pt;
+}
+
+/* --------------------------------------------------------------------------
+   PAGE 5: Rules with Scroll Float
+   -------------------------------------------------------------------------- */
+.rule-section {
+  position: relative;
+}
+
+/* Scroll shape using shape-outside with inset */
+.scroll-float {
+  float: left;
+  width: 1.5in;
+  height: 2in;
+  margin: 0 0.1875in 0.125in 0;
+  shape-outside: inset(0.125in round 0.25in);
+  shape-margin: 0.125in;
+}
+
+.scroll-shape {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(180deg, 
+    #d4c4a8 0%, 
+    #f5efe6 5%, 
+    #f5efe6 95%, 
+    #d4c4a8 100%);
+  border: 2pt solid var(--color-accent);
+  border-radius: 0.25in;
+  box-shadow: 
+    inset 0 0.125in 0.25in rgba(0, 0, 0, 0.1),
+    3pt 3pt 6pt rgba(0, 0, 0, 0.2);
+  position: relative;
+}
+
+.scroll-shape::before,
+.scroll-shape::after {
+  content: '';
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  height: 0.1875in;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    var(--color-accent) 20%, 
+    var(--color-accent) 80%, 
+    transparent 100%);
+  border-radius: 0.0625in;
+}
+
+.scroll-shape::before {
+  top: 0.25in;
+}
+
+.scroll-shape::after {
+  bottom: 0.25in;
+}
+
+/* Callout box */
+.callout-box {
+  background: linear-gradient(135deg, #fdf6e3 0%, #f5efe6 100%);
+  border-left: 4pt solid var(--color-accent);
+  padding: 0.1875in;
+  margin: 0.25in 0;
+  font-size: 9pt;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+.callout-header {
+  font-family: var(--font-heading);
+  font-weight: bold;
+  font-size: 10pt;
+  color: var(--color-accent);
+  margin-bottom: 0.0625in;
+}
+
+.callout-box p {
+  margin-bottom: 0;
+  font-style: italic;
+}
+
+/* Rules table */
+.table-wrapper {
+  margin: 0.25in 0;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+.rules-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 9pt;
+}
+
+.rules-table caption {
+  font-family: var(--font-heading);
+  font-weight: bold;
+  font-size: 11pt;
+  text-align: left;
+  margin-bottom: 0.0625in;
+  color: var(--color-primary);
+}
+
+.rules-table th,
+.rules-table td {
+  border: 1pt solid var(--color-secondary);
+  padding: 0.0625in 0.125in;
+  text-align: left;
+}
+
+.rules-table th {
+  background: var(--color-secondary);
+  color: white;
+  font-weight: bold;
+}
+
+.rules-table tr:nth-child(even) td {
+  background: rgba(47, 79, 79, 0.05);
+}
+
+/* Page reference box */
+.page-reference {
+  margin-top: 0.25in;
+  padding: 0.125in;
+  background: rgba(47, 79, 79, 0.1);
+  border-radius: 3pt;
+  font-size: 9pt;
+  font-style: italic;
+}
+
+.page-reference p {
+  margin: 0;
+}
+
+/* --------------------------------------------------------------------------
+   Print-Specific Overrides
+   -------------------------------------------------------------------------- */
+@media print {
+  body {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  
+  .page {
+    margin: 0;
+    padding: 0;
+  }
+  
+  /* Ensure backgrounds print */
+  .title-page,
+  .bleed-background,
+  .stat-block,
+  .callout-box,
+  .rules-table th,
+  .rules-table tr:nth-child(even) td {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Vivliostyle-Specific Adjustments
+   -------------------------------------------------------------------------- */
+@supports (prince-pdf-destination: auto) or (-webkit-print-color-adjust: exact) {
+  /* These rules help ensure compatibility across renderers */
+  .page {
+    box-decoration-break: clone;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Page Counters
+   -------------------------------------------------------------------------- */
+body {
+  counter-reset: page 0;
+}
+
+.title-page {
+  counter-increment: none;
+}
+
+.content-page {
+  counter-increment: page;
+}

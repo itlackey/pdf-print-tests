@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="UTF-8">
+  <title>Vivliostyle Kitchen Sink - Feature Verification Test</title>
+  <link rel="stylesheet" href="kitchen-sink.css">
+</head>
+<body>
+  <!-- ========================================================================
+       KITCHEN SINK EXAMPLE
+       Comprehensive test of all Vivliostyle supported CSS features
+       Reference: https://vivliostyle.github.io/vivliostyle.js/docs/en/supported-features.html
+       ======================================================================== -->
+
+  <!-- PAGE 1: Title Page -->
+  <section class="page title-page" id="title">
+    <header class="running-header">
+      <span class="running-title">Vivliostyle Kitchen Sink</span>
+    </header>
+    <div class="title-content">
+      <h1 class="book-title">Vivliostyle<br>Kitchen Sink</h1>
+      <p class="subtitle">CSS Paged Media Feature Verification</p>
+      <p class="version">Version 1.0</p>
+      <div class="ornament"></div>
+    </div>
+  </section>
+
+  <!-- PAGE 2: CSS Values Test -->
+  <section class="page content-page" id="values" data-chapter="Values">
+    <header class="running-header">
+      <span class="running-title">CSS Values</span>
+    </header>
+    
+    <h2>1. CSS Values</h2>
+    
+    <h3>1.1 Length Units</h3>
+    <div class="test-box length-units">
+      <p class="unit-em">Font-relative: 1.5em text</p>
+      <p class="unit-rem">Root em: 1rem text</p>
+      <p class="unit-ch">Character: 40ch width</p>
+      <p class="unit-ex">X-height: 2ex line-height</p>
+      <div class="unit-viewport">Viewport: 10vw × 5vh box</div>
+      <div class="unit-physical">Physical: 1in × 2cm box (25.4mm × 20mm)</div>
+      <div class="unit-absolute">Absolute: 72pt × 6pc box</div>
+    </div>
+    
+    <h3>1.2 Color Values</h3>
+    <div class="color-grid">
+      <div class="color-box color-keyword">Keyword<br>(darkred)</div>
+      <div class="color-box color-hex">Hex<br>(#336699)</div>
+      <div class="color-box color-rgb">RGB<br>(rgb(100,150,200))</div>
+      <div class="color-box color-rgba">RGBA<br>(rgba(0,128,0,0.7))</div>
+      <div class="color-box color-hsl">HSL<br>(hsl(270,60%,50%))</div>
+      <div class="color-box color-hsla">HSLA<br>(hsla(30,100%,50%,0.8))</div>
+      <div class="color-box color-current">currentColor<br>(inherited)</div>
+      <div class="color-box color-transparent">transparent</div>
+    </div>
+    
+    <h3>1.3 calc() Function</h3>
+    <div class="calc-demo">
+      <div class="calc-box">Width: calc(100% - 1in)</div>
+      <p>Padding calculated: calc(0.25in + 0.5em)</p>
+    </div>
+    
+    <h3>1.4 attr() Function</h3>
+    <p data-prefix="§" class="attr-demo">This paragraph uses attr() for the prefix.</p>
+    <a href="#counters" class="attr-link" data-label="See section">Link with attr()</a>
+  </section>
+
+  <!-- PAGE 3: Selectors Test -->
+  <section class="page content-page" id="selectors" data-chapter="Selectors">
+    <header class="running-header">
+      <span class="running-title">CSS Selectors</span>
+    </header>
+    
+    <h2>2. CSS Selectors</h2>
+    
+    <h3>2.1 Basic Selectors</h3>
+    <div class="selector-tests">
+      <p class="class-selector">Class selector (.class-selector)</p>
+      <p id="id-selector">ID selector (#id-selector)</p>
+      <div data-type="test">Attribute selector ([data-type="test"])</div>
+      <div data-attr^="pre">Attribute starts with ([data-attr^="pre"])</div>
+      <div data-attr$="fix">Attribute ends with ([data-attr$="fix"])</div>
+      <div data-attr*="mid">Attribute contains ([data-attr*="mid"])</div>
+    </div>
+    
+    <h3>2.2 Structural Pseudo-classes</h3>
+    <ul class="pseudo-list">
+      <li>First child (:first-child)</li>
+      <li>Second item</li>
+      <li>Third item (:nth-child(3))</li>
+      <li>Fourth item (:nth-child(even))</li>
+      <li>Fifth item (:nth-child(odd))</li>
+      <li>Last child (:last-child)</li>
+    </ul>
+    
+    <h3>2.3 Pseudo-elements</h3>
+    <p class="first-letter-demo">Drop cap using ::first-letter pseudo-element styling.</p>
+    <p class="first-line-demo">This paragraph has its first line styled differently using ::first-line. The rest of the paragraph continues with normal styling to demonstrate the effect clearly.</p>
+    <p class="before-after-demo">Content inserted via ::before and ::after</p>
+    
+    <h3>2.4 Combinators</h3>
+    <div class="combinator-demo">
+      <p>Descendant (space)</p>
+      <div>
+        <p>Child selector (>)</p>
+        <span><p>Nested deeper</p></span>
+      </div>
+      <p>Adjacent sibling (+)</p>
+      <p>General sibling (~)</p>
+    </div>
+    
+    <h3>2.5 Negation Pseudo-class</h3>
+    <div class="not-demo">
+      <span class="highlight">Highlighted</span>
+      <span>Not highlighted (:not(.highlight))</span>
+      <span class="highlight">Highlighted</span>
+    </div>
+  </section>
+
+  <!-- PAGE 4: Counters and Generated Content -->
+  <section class="page content-page" id="counters" data-chapter="Counters">
+    <header class="running-header">
+      <span class="running-title">Counters &amp; Generated Content</span>
+    </header>
+    
+    <h2>3. Counters &amp; Generated Content</h2>
+    
+    <h3>3.1 CSS Counters</h3>
+    <div class="counter-demo">
+      <h4 class="counter-h4">Auto-numbered heading</h4>
+      <h4 class="counter-h4">Another heading</h4>
+      <h4 class="counter-h4">Third heading</h4>
+    </div>
+    
+    <h3>3.2 Nested Counters</h3>
+    <ol class="nested-counter">
+      <li>First level item
+        <ol>
+          <li>Second level item</li>
+          <li>Second level item
+            <ol>
+              <li>Third level item</li>
+              <li>Third level item</li>
+            </ol>
+          </li>
+        </ol>
+      </li>
+      <li>First level item</li>
+    </ol>
+    
+    <h3>3.3 target-counter() Function</h3>
+    <p>Reference to <a href="#page-floats" class="page-ref">Page Floats section</a> (page <a href="#page-floats" class="target-counter-ref"></a>)</p>
+    <p>Reference to <a href="#title" class="page-ref">Title page</a> (page <a href="#title" class="target-counter-ref"></a>)</p>
+    
+    <h3>3.4 Quotes</h3>
+    <p class="quotes-demo">
+      <q>Outer quote with <q>nested quote inside</q> continuing.</q>
+    </p>
+    
+    <h3>3.5 String-set for Running Headers</h3>
+    <p class="string-set-note">The running headers use string-set to capture chapter titles.</p>
+  </section>
+
+  <!-- PAGE 5: Page Layout Features -->
+  <section class="page content-page" id="page-layout" data-chapter="Page Layout">
+    <header class="running-header">
+      <span class="running-title">Page Layout</span>
+    </header>
+    
+    <h2>4. CSS Paged Media</h2>
+    
+    <h3>4.1 @page Properties</h3>
+    <div class="page-info">
+      <p><strong>size:</strong> 6.25in × 9.25in (with bleed)</p>
+      <p><strong>bleed:</strong> 0.125in</p>
+      <p><strong>marks:</strong> crop cross</p>
+      <p><strong>margin boxes:</strong> @top-center, @bottom-center</p>
+    </div>
+    
+    <h3>4.2 Page Selectors</h3>
+    <ul>
+      <li><code>@page :first</code> - First page styling</li>
+      <li><code>@page :left</code> - Left (verso) pages</li>
+      <li><code>@page :right</code> - Right (recto) pages</li>
+      <li><code>@page :blank</code> - Blank pages</li>
+    </ul>
+    
+    <h3>4.3 Named Pages</h3>
+    <p>Different sections can use named pages:</p>
+    <ul>
+      <li><code>page: title;</code> - Title page</li>
+      <li><code>page: content;</code> - Content pages</li>
+      <li><code>page: appendix;</code> - Appendix pages</li>
+    </ul>
+    
+    <h3>4.4 Page-based Counters</h3>
+    <p>Current page: <span class="page-counter"></span></p>
+    <p>Page counters are automatically managed by the renderer.</p>
+    
+    <h3>4.5 env() Function</h3>
+    <div class="env-demo">
+      <p><code>env(pub-title)</code> - Publication title in headers</p>
+      <p><code>env(doc-title)</code> - Document title</p>
+    </div>
+  </section>
+
+  <!-- PAGE 6: Multi-column Layout -->
+  <section class="page content-page" id="multicol" data-chapter="Multi-column">
+    <header class="running-header">
+      <span class="running-title">Multi-column Layout</span>
+    </header>
+    
+    <h2>5. Multi-column Layout</h2>
+    
+    <h3>5.1 Basic Columns</h3>
+    <div class="two-columns">
+      <p>This content flows across two columns. The column-count property controls the number of columns, while column-gap sets the space between them.</p>
+      <p>Column rules can be styled with column-rule, column-rule-width, column-rule-style, and column-rule-color properties.</p>
+      <p>Content automatically balances between columns, creating an even distribution that improves readability.</p>
+    </div>
+    
+    <h3>5.2 Column Properties</h3>
+    <div class="column-demo">
+      <div class="col-width">
+        <p><strong>column-width:</strong> Minimum column width set to 2in</p>
+      </div>
+      <div class="col-gap">
+        <p><strong>column-gap:</strong> 0.25in gap between columns</p>
+      </div>
+      <div class="col-rule">
+        <p><strong>column-rule:</strong> 1pt solid gray rule between columns</p>
+      </div>
+    </div>
+    
+    <h3>5.3 Column Span</h3>
+    <div class="span-demo">
+      <p>Regular column content flows here.</p>
+      <h4 class="column-span-all">Spanning Element (column-span: all)</h4>
+      <p>Content continues after the spanning element in normal column flow.</p>
+    </div>
+    
+    <h3>5.4 Column Fill</h3>
+    <div class="column-fill-demo">
+      <p><strong>column-fill: balance</strong> - Columns try to be equal height</p>
+      <p><strong>column-fill: auto</strong> - Fills columns sequentially</p>
+    </div>
+  </section>
+
+  <!-- PAGE 7: Fragmentation -->
+  <section class="page content-page" id="fragmentation" data-chapter="Fragmentation">
+    <header class="running-header">
+      <span class="running-title">CSS Fragmentation</span>
+    </header>
+    
+    <h2>6. CSS Fragmentation</h2>
+    
+    <h3>6.1 Break Properties</h3>
+    <div class="break-demo">
+      <p class="break-before-page"><strong>break-before: page</strong> - Forces page break before</p>
+      <p class="break-after-avoid"><strong>break-after: avoid</strong> - Avoids break after</p>
+      <div class="break-inside-avoid">
+        <p><strong>break-inside: avoid</strong> - Keeps this box together</p>
+        <p>Additional content that should stay with the above.</p>
+      </div>
+    </div>
+    
+    <h3>6.2 Orphans and Widows</h3>
+    <div class="orphans-widows-demo">
+      <p><strong>orphans: 3</strong> - Minimum 3 lines at bottom of page</p>
+      <p><strong>widows: 3</strong> - Minimum 3 lines at top of new page</p>
+      <p>These properties control how paragraphs break across pages to avoid awkward single lines.</p>
+    </div>
+    
+    <h3>6.3 box-decoration-break</h3>
+    <div class="box-decoration-demo">
+      <span class="clone-demo">This inline element with <strong>box-decoration-break: clone</strong> repeats borders and backgrounds when broken across lines or pages.</span>
+    </div>
+    
+    <h3>6.4 Legacy Page Break Properties</h3>
+    <ul>
+      <li><code>page-break-before</code> - Legacy equivalent of break-before</li>
+      <li><code>page-break-after</code> - Legacy equivalent of break-after</li>
+      <li><code>page-break-inside</code> - Legacy equivalent of break-inside</li>
+    </ul>
+  </section>
+
+  <!-- PAGE 8: Page Floats -->
+  <section class="page content-page" id="page-floats" data-chapter="Page Floats">
+    <header class="running-header">
+      <span class="running-title">CSS Page Floats</span>
+    </header>
+    
+    <h2>7. CSS Page Floats</h2>
+    
+    <h3>7.1 Float Reference</h3>
+    <div class="float-reference-demo">
+      <div class="page-float-top">
+        <p>float: block-start<br>float-reference: page</p>
+      </div>
+      <p>This text flows around the page float. Page floats are positioned relative to the page rather than their containing block.</p>
+      <p>The <code>float-reference: page</code> property enables this behavior.</p>
+    </div>
+    
+    <h3>7.2 Float Values</h3>
+    <ul class="float-values">
+      <li><code>block-start</code> - Float to block-start edge</li>
+      <li><code>block-end</code> - Float to block-end edge</li>
+      <li><code>inline-start</code> - Float to inline-start edge</li>
+      <li><code>inline-end</code> - Float to inline-end edge</li>
+      <li><code>snap-block</code> - Snap to nearest block edge</li>
+      <li><code>top, bottom, left, right</code> - Physical directions</li>
+    </ul>
+    
+    <h3>7.3 Clear Values</h3>
+    <div class="clear-demo">
+      <div class="float-left-box">Left float</div>
+      <div class="float-right-box">Right float</div>
+      <p class="clear-both">Cleared both floats with <code>clear: both</code></p>
+    </div>
+    
+    <h3>7.4 Footnotes (CSS GCPM)</h3>
+    <p>Footnotes use float: footnote<span class="footnote">This is a footnote demonstrating the footnote-policy property.</span> to position content at the bottom of the page.</p>
+    <p>The <code>footnote-policy</code> property controls overflow behavior.</p>
+  </section>
+
+  <!-- PAGE 9: Writing Modes -->
+  <section class="page content-page" id="writing-modes" data-chapter="Writing Modes">
+    <header class="running-header">
+      <span class="running-title">Writing Modes</span>
+    </header>
+    
+    <h2>8. CSS Writing Modes</h2>
+    
+    <h3>8.1 writing-mode Property</h3>
+    <div class="writing-mode-grid">
+      <div class="wm-horizontal-tb">
+        <p><strong>horizontal-tb</strong></p>
+        <p>Default horizontal text, top to bottom.</p>
+      </div>
+      <div class="wm-vertical-rl">
+        <p><strong>vertical-rl</strong></p>
+        <p>Vertical text, right to left.</p>
+      </div>
+      <div class="wm-vertical-lr">
+        <p><strong>vertical-lr</strong></p>
+        <p>Vertical text, left to right.</p>
+      </div>
+    </div>
+    
+    <h3>8.2 text-orientation</h3>
+    <div class="text-orientation-demo">
+      <div class="to-mixed">
+        <p><strong>mixed</strong>: ABC漢字123</p>
+      </div>
+      <div class="to-upright">
+        <p><strong>upright</strong>: ABC漢字123</p>
+      </div>
+      <div class="to-sideways">
+        <p><strong>sideways</strong>: ABC漢字123</p>
+      </div>
+    </div>
+    
+    <h3>8.3 text-combine-upright</h3>
+    <div class="tcy-demo">
+      <p>Horizontal in vertical: <span class="tcy">2025</span>年<span class="tcy">01</span>月</p>
+    </div>
+    
+    <h3>8.4 Direction and Unicode-bidi</h3>
+    <div class="bidi-demo">
+      <p class="rtl-text" dir="rtl" lang="he">עברית (Hebrew - RTL text)</p>
+      <p class="ltr-text">English text (LTR default)</p>
+      <p class="mixed-bidi">Mixed: Hello שלום World עולם</p>
+    </div>
+  </section>
+
+  <!-- PAGE 10: Flexbox -->
+  <section class="page content-page" id="flexbox" data-chapter="Flexbox">
+    <header class="running-header">
+      <span class="running-title">Flexbox Layout</span>
+    </header>
+    
+    <h2>9. CSS Flexbox</h2>
+    
+    <h3>9.1 Flex Container</h3>
+    <div class="flex-container-demo">
+      <div class="flex-item">1</div>
+      <div class="flex-item">2</div>
+      <div class="flex-item">3</div>
+    </div>
+    
+    <h3>9.2 Flex Direction</h3>
+    <div class="flex-direction-grid">
+      <div class="flex-row">
+        <span>Row →</span>
+        <span>→</span>
+        <span>→</span>
+      </div>
+      <div class="flex-row-reverse">
+        <span>← Row-reverse</span>
+        <span>←</span>
+        <span>←</span>
+      </div>
+      <div class="flex-column">
+        <span>Column ↓</span>
+        <span>↓</span>
+        <span>↓</span>
+      </div>
+    </div>
+    
+    <h3>9.3 Justify &amp; Align</h3>
+    <div class="flex-justify-demo">
+      <div class="justify-start"><span>start</span><span>•</span><span>•</span></div>
+      <div class="justify-center"><span>•</span><span>center</span><span>•</span></div>
+      <div class="justify-end"><span>•</span><span>•</span><span>end</span></div>
+      <div class="justify-between"><span>space</span><span>between</span><span>items</span></div>
+      <div class="justify-around"><span>space</span><span>around</span><span>items</span></div>
+    </div>
+    
+    <h3>9.4 Flex Properties</h3>
+    <div class="flex-grow-demo">
+      <div class="grow-1">flex-grow: 1</div>
+      <div class="grow-2">flex-grow: 2</div>
+      <div class="grow-1">flex-grow: 1</div>
+    </div>
+  </section>
+
+  <!-- PAGE 11: Transforms & Filters -->
+  <section class="page content-page" id="transforms" data-chapter="Transforms">
+    <header class="running-header">
+      <span class="running-title">Transforms &amp; Filters</span>
+    </header>
+    
+    <h2>10. CSS Transforms</h2>
+    
+    <h3>10.1 2D Transforms</h3>
+    <div class="transform-grid">
+      <div class="transform-box rotate">rotate(15deg)</div>
+      <div class="transform-box scale">scale(0.8)</div>
+      <div class="transform-box skew">skewX(10deg)</div>
+      <div class="transform-box translate">translate(5px, 5px)</div>
+    </div>
+    
+    <h3>10.2 Transform Origin</h3>
+    <div class="origin-demo">
+      <div class="origin-center">center (default)</div>
+      <div class="origin-top-left">top left</div>
+      <div class="origin-bottom-right">bottom right</div>
+    </div>
+    
+    <h2>11. CSS Filters</h2>
+    
+    <h3>11.1 Filter Functions</h3>
+    <div class="filter-grid">
+      <div class="filter-box filter-blur">blur(2px)</div>
+      <div class="filter-box filter-grayscale">grayscale(100%)</div>
+      <div class="filter-box filter-sepia">sepia(80%)</div>
+      <div class="filter-box filter-brightness">brightness(1.3)</div>
+      <div class="filter-box filter-contrast">contrast(1.5)</div>
+      <div class="filter-box filter-opacity">opacity(0.5)</div>
+    </div>
+    
+    <h3>11.2 Blend Modes</h3>
+    <div class="blend-demo">
+      <div class="blend-multiply">multiply</div>
+      <div class="blend-screen">screen</div>
+      <div class="blend-overlay">overlay</div>
+    </div>
+  </section>
+
+  <!-- PAGE 12: Logical Properties -->
+  <section class="page content-page" id="logical" data-chapter="Logical Properties">
+    <header class="running-header">
+      <span class="running-title">Logical Properties</span>
+    </header>
+    
+    <h2>12. CSS Logical Properties</h2>
+    
+    <h3>12.1 Logical Dimensions</h3>
+    <div class="logical-box dimension-demo">
+      <p><strong>inline-size:</strong> Width in horizontal-tb</p>
+      <p><strong>block-size:</strong> Height in horizontal-tb</p>
+      <p><strong>min/max-inline-size</strong></p>
+      <p><strong>min/max-block-size</strong></p>
+    </div>
+    
+    <h3>12.2 Logical Margins</h3>
+    <div class="logical-margin-demo">
+      <div class="margin-block">margin-block: 0.25in</div>
+      <div class="margin-inline">margin-inline: 0.5in</div>
+      <div class="margin-block-start">margin-block-start: 0.25in</div>
+      <div class="margin-inline-end">margin-inline-end: 0.5in</div>
+    </div>
+    
+    <h3>12.3 Logical Padding</h3>
+    <div class="logical-padding-demo">
+      <div class="padding-block">padding-block: 0.125in</div>
+      <div class="padding-inline">padding-inline: 0.25in</div>
+    </div>
+    
+    <h3>12.4 Logical Borders</h3>
+    <div class="logical-border-demo">
+      <div class="border-block">border-block: 2pt solid</div>
+      <div class="border-inline">border-inline: 2pt dashed</div>
+      <div class="border-block-start">border-block-start only</div>
+      <div class="border-inline-end">border-inline-end only</div>
+    </div>
+    
+    <h3>12.5 Logical Inset</h3>
+    <div class="inset-demo">
+      <div class="inset-block">inset-block: 0.125in</div>
+      <div class="inset-inline">inset-inline: 0.25in</div>
+    </div>
+  </section>
+
+  <!-- PAGE 13: Typography -->
+  <section class="page content-page" id="typography" data-chapter="Typography">
+    <header class="running-header">
+      <span class="running-title">Typography</span>
+    </header>
+    
+    <h2>13. CSS Typography</h2>
+    
+    <h3>13.1 Text Properties</h3>
+    <div class="text-demo">
+      <p class="text-indent">Text-indent: First line indented 0.25in for paragraph style.</p>
+      <p class="text-align-justify">Text-align: justify - This paragraph demonstrates justified text alignment which spreads words across the full line width for a clean edge on both sides.</p>
+      <p class="text-transform-upper">text-transform: uppercase</p>
+      <p class="letter-spacing">letter-spacing: 0.1em - expanded tracking</p>
+      <p class="word-spacing">word-spacing: 0.2em - expanded word gaps</p>
+    </div>
+    
+    <h3>13.2 Text Decoration</h3>
+    <div class="decoration-demo">
+      <p class="underline">text-decoration: underline</p>
+      <p class="overline">text-decoration: overline</p>
+      <p class="line-through">text-decoration: line-through</p>
+      <p class="decoration-style">text-decoration-style: wavy</p>
+      <p class="decoration-color">text-decoration-color: red</p>
+    </div>
+    
+    <h3>13.3 Text Emphasis</h3>
+    <div class="emphasis-demo">
+      <p class="emphasis-dot">text-emphasis: dot - emphasized text</p>
+      <p class="emphasis-circle">text-emphasis: circle - for CJK text 中文</p>
+      <p class="emphasis-sesame">text-emphasis: sesame - 日本語テキスト</p>
+    </div>
+    
+    <h3>13.4 Hyphenation</h3>
+    <div class="hyphenation-demo" lang="en">
+      <p class="hyphens-auto">hyphens: auto - This demonstrates automatic hyphenation for long words like internationalization and characteristically.</p>
+      <p class="hyphens-none">hyphens: none - No hyphenation for internationalization.</p>
+    </div>
+    
+    <h3>13.5 Line Breaking</h3>
+    <div class="line-break-demo">
+      <p class="word-break">word-break: break-all - supercalifragilisticexpialidocious</p>
+      <p class="overflow-wrap">overflow-wrap: break-word - pneumonoultramicroscopicsilicovolcanoconiosis</p>
+    </div>
+  </section>
+
+  <!-- PAGE 14: Backgrounds & Borders -->
+  <section class="page content-page" id="backgrounds" data-chapter="Backgrounds">
+    <header class="running-header">
+      <span class="running-title">Backgrounds &amp; Borders</span>
+    </header>
+    
+    <h2>14. CSS Backgrounds &amp; Borders</h2>
+    
+    <h3>14.1 Background Properties</h3>
+    <div class="background-demo">
+      <div class="bg-color">background-color</div>
+      <div class="bg-gradient">linear-gradient</div>
+      <div class="bg-radial">radial-gradient</div>
+      <div class="bg-multiple">multiple backgrounds</div>
+    </div>
+    
+    <h3>14.2 Background Size &amp; Position</h3>
+    <div class="bg-size-demo">
+      <div class="bg-cover">background-size: cover</div>
+      <div class="bg-contain">background-size: contain</div>
+      <div class="bg-position">background-position: center</div>
+    </div>
+    
+    <h3>14.3 Border Radius</h3>
+    <div class="border-radius-demo">
+      <div class="radius-uniform">uniform radius</div>
+      <div class="radius-asymmetric">asymmetric radius</div>
+      <div class="radius-elliptical">elliptical radius</div>
+      <div class="radius-circle">50% = circle</div>
+    </div>
+    
+    <h3>14.4 Box Shadow</h3>
+    <div class="shadow-demo">
+      <div class="shadow-basic">basic shadow</div>
+      <div class="shadow-inset">inset shadow</div>
+      <div class="shadow-multiple">multiple shadows</div>
+    </div>
+    
+    <h3>14.5 Border Images</h3>
+    <div class="border-image-demo">
+      <p>Border images allow custom graphics for borders using border-image properties.</p>
+    </div>
+  </section>
+
+  <!-- PAGE 15: Tables -->
+  <section class="page content-page" id="tables" data-chapter="Tables">
+    <header class="running-header">
+      <span class="running-title">Tables</span>
+    </header>
+    
+    <h2>15. CSS Tables</h2>
+    
+    <h3>15.1 Table Layout</h3>
+    <table class="styled-table">
+      <caption>Feature Support Matrix</caption>
+      <thead>
+        <tr>
+          <th>Feature</th>
+          <th>PagedJS</th>
+          <th>Vivliostyle</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>@page rules</td>
+          <td>✅</td>
+          <td>✅</td>
+          <td>Full</td>
+        </tr>
+        <tr>
+          <td>Margin boxes</td>
+          <td>✅</td>
+          <td>✅</td>
+          <td>Full</td>
+        </tr>
+        <tr>
+          <td>Page floats</td>
+          <td>⚠️</td>
+          <td>✅</td>
+          <td>Partial</td>
+        </tr>
+        <tr>
+          <td>Footnotes</td>
+          <td>⚠️</td>
+          <td>✅</td>
+          <td>Partial</td>
+        </tr>
+        <tr>
+          <td>Column span</td>
+          <td>✅</td>
+          <td>✅</td>
+          <td>Full</td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="4">✅ = Full support, ⚠️ = Partial support</td>
+        </tr>
+      </tfoot>
+    </table>
+    
+    <h3>15.2 Table Properties</h3>
+    <div class="table-props">
+      <p><strong>border-collapse:</strong> collapse | separate</p>
+      <p><strong>border-spacing:</strong> horizontal vertical</p>
+      <p><strong>caption-side:</strong> top | bottom</p>
+      <p><strong>empty-cells:</strong> show | hide</p>
+      <p><strong>table-layout:</strong> auto | fixed</p>
+    </div>
+    
+    <h3>15.3 Repeated Headers (repeat-on-break)</h3>
+    <table class="repeat-header-table">
+      <thead>
+        <tr><th>ID</th><th>Name</th><th>Value</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><td>Alpha</td><td>100</td></tr>
+        <tr><td>2</td><td>Beta</td><td>200</td></tr>
+        <tr><td>3</td><td>Gamma</td><td>300</td></tr>
+        <tr><td>4</td><td>Delta</td><td>400</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- PAGE 16: Images & Media -->
+  <section class="page content-page" id="images" data-chapter="Images">
+    <header class="running-header">
+      <span class="running-title">Images &amp; Media</span>
+    </header>
+    
+    <h2>16. Images &amp; Media</h2>
+    
+    <h3>16.1 Image Resolution</h3>
+    <div class="image-resolution-demo">
+      <p><strong>image-resolution:</strong> Controls print resolution for raster images.</p>
+      <p>Common values: 300dpi for print, 72dpi for screen.</p>
+    </div>
+    
+    <h3>16.2 Object Fit</h3>
+    <div class="object-fit-demo">
+      <div class="fit-fill">object-fit: fill</div>
+      <div class="fit-contain">object-fit: contain</div>
+      <div class="fit-cover">object-fit: cover</div>
+      <div class="fit-none">object-fit: none</div>
+      <div class="fit-scale-down">object-fit: scale-down</div>
+    </div>
+    
+    <h3>16.3 Object Position</h3>
+    <div class="object-position-demo">
+      <p><strong>object-position:</strong> Positions content within its box</p>
+      <p>Works with object-fit to control alignment.</p>
+    </div>
+    
+    <h3>16.4 SVG Properties</h3>
+    <svg class="svg-demo" viewBox="0 0 100 60" xmlns="http://www.w3.org/2000/svg">
+      <rect x="5" y="5" width="30" height="50" class="svg-rect"/>
+      <circle cx="65" cy="30" r="25" class="svg-circle"/>
+      <line x1="40" y1="55" x2="90" y2="5" class="svg-line"/>
+    </svg>
+    <div class="svg-props">
+      <p><strong>fill, stroke, stroke-width</strong></p>
+      <p><strong>fill-opacity, stroke-opacity</strong></p>
+      <p><strong>stroke-dasharray, stroke-linecap</strong></p>
+    </div>
+  </section>
+
+  <!-- PAGE 17: Ruby & CJK -->
+  <section class="page content-page" id="ruby" data-chapter="Ruby">
+    <header class="running-header">
+      <span class="running-title">Ruby &amp; CJK</span>
+    </header>
+    
+    <h2>17. Ruby Annotations</h2>
+    
+    <h3>17.1 Basic Ruby</h3>
+    <div class="ruby-demo">
+      <p>
+        <ruby>漢<rt>かん</rt></ruby><ruby>字<rt>じ</rt></ruby>
+        with furigana annotations.
+      </p>
+      <p>
+        <ruby>東京<rt>とうきょう</rt></ruby> - Tokyo
+      </p>
+    </div>
+    
+    <h3>17.2 Ruby Alignment</h3>
+    <div class="ruby-align-demo">
+      <p class="ruby-start">
+        <ruby>ruby-align: start<rt>aligned</rt></ruby>
+      </p>
+      <p class="ruby-center">
+        <ruby>ruby-align: center<rt>centered</rt></ruby>
+      </p>
+      <p class="ruby-space-between">
+        <ruby>ruby-align: space-between<rt>spaced</rt></ruby>
+      </p>
+    </div>
+    
+    <h3>17.3 Ruby Position</h3>
+    <div class="ruby-position-demo">
+      <p class="ruby-over">
+        <ruby>ruby-position: over<rt>above</rt></ruby> (default)
+      </p>
+      <p class="ruby-under">
+        <ruby>ruby-position: under<rt>below</rt></ruby>
+      </p>
+    </div>
+    
+    <h3>17.4 CJK Text Properties</h3>
+    <div class="cjk-demo">
+      <p class="cjk-line-break">line-break: strict - 日本語テキストの改行制御</p>
+      <p class="cjk-word-break">word-break: keep-all - 단어를분리하지않음</p>
+    </div>
+  </section>
+
+  <!-- PAGE 18: Clip & Mask -->
+  <section class="page content-page" id="clip-mask" data-chapter="Clip & Mask">
+    <header class="running-header">
+      <span class="running-title">Clip &amp; Mask</span>
+    </header>
+    
+    <h2>18. CSS Masking</h2>
+    
+    <h3>18.1 Clip Path</h3>
+    <div class="clip-demo">
+      <div class="clip-circle">clip-path: circle()</div>
+      <div class="clip-ellipse">clip-path: ellipse()</div>
+      <div class="clip-polygon">clip-path: polygon()</div>
+      <div class="clip-inset">clip-path: inset()</div>
+    </div>
+    
+    <h3>18.2 Clip Path Shapes</h3>
+    <div class="clip-shapes">
+      <div class="shape-triangle">▲ triangle</div>
+      <div class="shape-pentagon">⬠ pentagon</div>
+      <div class="shape-star">★ star</div>
+    </div>
+    
+    <h3>18.3 clip-rule</h3>
+    <p><strong>clip-rule:</strong> nonzero | evenodd</p>
+    <p>Determines fill rule for clip paths with overlapping areas.</p>
+  </section>
+
+  <!-- PAGE 19: Summary & Verification -->
+  <section class="page content-page summary-page" id="summary" data-chapter="Summary">
+    <header class="running-header">
+      <span class="running-title">Summary</span>
+    </header>
+    
+    <h2>19. Feature Summary</h2>
+    
+    <div class="summary-grid">
+      <div class="summary-category">
+        <h4>CSS Values</h4>
+        <ul>
+          <li>Length units (em, rem, vh, vw, in, cm, pt)</li>
+          <li>Color values (keywords, hex, rgb, hsl)</li>
+          <li>calc(), attr(), env()</li>
+          <li>target-counter(), target-counters()</li>
+        </ul>
+      </div>
+      
+      <div class="summary-category">
+        <h4>Selectors</h4>
+        <ul>
+          <li>Type, class, ID selectors</li>
+          <li>Attribute selectors</li>
+          <li>Pseudo-classes (:nth-child, :first-child)</li>
+          <li>Pseudo-elements (::before, ::after)</li>
+          <li>Combinators (>, +, ~)</li>
+        </ul>
+      </div>
+      
+      <div class="summary-category">
+        <h4>Paged Media</h4>
+        <ul>
+          <li>@page rules with selectors</li>
+          <li>Margin boxes</li>
+          <li>Page size, bleed, marks</li>
+          <li>Named pages</li>
+          <li>Page counters</li>
+        </ul>
+      </div>
+      
+      <div class="summary-category">
+        <h4>Layout</h4>
+        <ul>
+          <li>Multi-column layout</li>
+          <li>Flexbox</li>
+          <li>CSS Page Floats</li>
+          <li>Writing modes</li>
+          <li>Logical properties</li>
+        </ul>
+      </div>
+      
+      <div class="summary-category">
+        <h4>Fragmentation</h4>
+        <ul>
+          <li>break-before/after/inside</li>
+          <li>orphans, widows</li>
+          <li>box-decoration-break</li>
+          <li>repeat-on-break</li>
+        </ul>
+      </div>
+      
+      <div class="summary-category">
+        <h4>Visual</h4>
+        <ul>
+          <li>Transforms (2D)</li>
+          <li>Filters</li>
+          <li>Blend modes</li>
+          <li>Clip paths</li>
+        </ul>
+      </div>
+    </div>
+    
+    <div class="verification-note">
+      <h3>Verification Checklist</h3>
+      <p>When comparing PagedJS and Vivliostyle output, verify:</p>
+      <ol>
+        <li>All pages render correctly</li>
+        <li>Page breaks occur at expected locations</li>
+        <li>Running headers display chapter titles</li>
+        <li>Page numbers are correct</li>
+        <li>Footnotes appear at page bottom</li>
+        <li>Floats position correctly</li>
+        <li>Writing modes display properly</li>
+        <li>All visual effects render</li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- PAGE 20: Test Appendix -->
+  <section class="page content-page appendix-page" id="appendix" data-chapter="Appendix">
+    <header class="running-header">
+      <span class="running-title">Appendix</span>
+    </header>
+    
+    <h2>Appendix: Test Reference</h2>
+    
+    <h3>A.1 Document Information</h3>
+    <dl class="doc-info">
+      <dt>Title</dt>
+      <dd>Vivliostyle Kitchen Sink</dd>
+      <dt>Purpose</dt>
+      <dd>CSS Paged Media Feature Verification</dd>
+      <dt>Pages</dt>
+      <dd>20</dd>
+      <dt>Trim Size</dt>
+      <dd>6" × 9"</dd>
+      <dt>Bleed</dt>
+      <dd>0.125"</dd>
+    </dl>
+    
+    <h3>A.2 Feature Reference</h3>
+    <p>For complete feature documentation, see:</p>
+    <ul>
+      <li><a href="https://vivliostyle.github.io/vivliostyle.js/docs/en/supported-features.html">Vivliostyle Supported Features</a></li>
+      <li><a href="https://pagedjs.org/documentation/">PagedJS Documentation</a></li>
+      <li><a href="https://www.w3.org/TR/css-page-3/">CSS Paged Media Module Level 3</a></li>
+      <li><a href="https://www.w3.org/TR/css-gcpm-3/">CSS Generated Content for Paged Media Level 3</a></li>
+    </ul>
+    
+    <h3>A.3 Known Limitations</h3>
+    <ul class="limitations">
+      <li>calc() with percentages may not calculate correctly</li>
+      <li>Some ::first-letter bugs with universal selector</li>
+      <li>:visited pseudo-class not supported</li>
+      <li>Dynamic pseudo-classes (:hover, :focus) not supported</li>
+      <li>initial and unset keywords not supported</li>
+    </ul>
+    
+    <div class="end-mark">
+      <p>— End of Document —</p>
+    </div>
+  </section>
+</body>
+</html>

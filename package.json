@@ -1,0 +1,24 @@
+{
+  "name": "pdfx-test-harness",
+  "version": "1.0.0",
+  "description": "Test harness for comparing PagedJS and Vivliostyle PDF/X output",
+  "type": "module",
+  "scripts": {
+    "build:pagedjs": "bun run scripts/build-pagedjs.ts",
+    "build:vivliostyle": "bun run scripts/build-vivliostyle.ts",
+    "convert:pdfx": "bun run scripts/convert-pdfx.ts",
+    "validate": "bun run scripts/validate-pdfs.ts",
+    "compare": "bun run scripts/compare-pdfs.ts",
+    "batch": "bun run scripts/batch-process.ts",
+    "test": "bun run scripts/run-all.ts",
+    "test:kitchen-sink": "bun run scripts/batch-process.ts --input examples --output output/kitchen-sink --html kitchen-sink.html",
+    "clean": "rm -rf output/* reports/*"
+  },
+  "dependencies": {
+    "pagedjs-cli": "^0.4.3",
+    "@vivliostyle/cli": "^8.16.0"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  }
+}

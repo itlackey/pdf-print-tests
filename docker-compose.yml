@@ -1,0 +1,99 @@
+# PDFX Test Harness - Docker Compose Configuration
+# 
+# Usage:
+#   docker compose up                    # Run with default test document
+#   docker compose up -d && docker compose logs -f  # Run in background
+#   docker compose run --rm pdfx shell   # Interactive shell
+#
+# With custom input:
+#   INPUT_DIR=./my-books docker compose up
+#
+# Or edit the volumes section below to point to your directories
+
+services:
+  pdfx:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pdfx-test-harness
+    
+    # Mount volumes for input and output
+    volumes:
+      # Input directory - mount your book projects here
+      # Each subdirectory with an HTML file will be processed
+      - ${INPUT_DIR:-./input}:/input:ro
+      
+      # Output directory - results will be written here
+      - ${OUTPUT_DIR:-./output}:/output
+      
+      # Optional: Mount custom ICC profiles
+      # - ./icc-profiles:/app/assets/icc:ro
+    
+    # Environment configuration
+    environment:
+      # Set to 'true' to skip specific steps
+      - SKIP_PAGEDJS=${SKIP_PAGEDJS:-false}
+      - SKIP_VIVLIOSTYLE=${SKIP_VIVLIOSTYLE:-false}
+      - SKIP_CONVERT=${SKIP_CONVERT:-false}
+      - SKIP_COMPARE=${SKIP_COMPARE:-false}
+      
+      # Chromium flags for container environment
+      - PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+      - CHROME_BIN=/usr/bin/chromium
+    
+    # Security settings for Chromium
+    security_opt:
+      - seccomp:unconfined
+    
+    # Shared memory size for Chromium
+    shm_size: '2gb'
+    
+    # Resource limits (adjust as needed)
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+        reservations:
+          memory: 1G
+    
+    # Default command
+    command: run
+
+  # Alternative service for just validation
+  validate:
+    extends:
+      service: pdfx
+    container_name: pdfx-validate
+    command: validate
+    profiles:
+      - tools
+
+  # Alternative service for just comparison
+  compare:
+    extends:
+      service: pdfx
+    container_name: pdfx-compare
+    command: compare
+    profiles:
+      - tools
+
+  # Interactive shell for debugging
+  shell:
+    extends:
+      service: pdfx
+    container_name: pdfx-shell
+    command: shell
+    stdin_open: true
+    tty: true
+    profiles:
+      - tools
+
+# Named volumes (optional, for persistent caching)
+volumes:
+  npm-cache:
+    driver: local
+
+# Network configuration
+networks:
+  default:
+    name: pdfx-network

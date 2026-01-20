@@ -1,0 +1,1491 @@
+/* ==========================================================================
+   VIVLIOSTYLE KITCHEN SINK - CSS Feature Verification Stylesheet
+   Tests all features from: https://vivliostyle.github.io/vivliostyle.js/docs/en/supported-features.html
+   ========================================================================== */
+
+/* ==========================================================================
+   1. CSS VALUES
+   ========================================================================== */
+
+/* 1.1 Root Variables & CSS-wide Keywords */
+:root {
+  /* Physical dimensions */
+  --trim-width: 6in;
+  --trim-height: 9in;
+  --bleed: 0.125in;
+  --page-width: calc(var(--trim-width) + var(--bleed) * 2);
+  --page-height: calc(var(--trim-height) + var(--bleed) * 2);
+  
+  /* Margins */
+  --margin-inside: 0.625in;
+  --margin-outside: 0.5in;
+  --margin-top: 0.625in;
+  --margin-bottom: 0.75in;
+  
+  /* Colors */
+  --color-primary: #2c3e50;
+  --color-secondary: #3498db;
+  --color-accent: #e74c3c;
+  --color-success: #27ae60;
+  --color-warning: #f39c12;
+  --color-text: #333333;
+  --color-muted: #7f8c8d;
+  --color-light: #ecf0f1;
+  --color-paper: #fffef8;
+  
+  /* Typography */
+  --font-serif: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+  --font-sans: 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'Courier New', Courier, monospace;
+  --font-size-base: 10pt;
+  --line-height-base: 1.5;
+}
+
+/* ==========================================================================
+   2. @PAGE RULES - CSS Paged Media 3
+   ========================================================================== */
+
+/* Default page setup */
+@page {
+  size: var(--page-width) var(--page-height);
+  margin: var(--margin-top) var(--margin-outside) var(--margin-bottom) var(--margin-inside);
+  marks: crop cross;
+  bleed: var(--bleed);
+  
+  /* Page counter */
+  @bottom-center {
+    content: counter(page);
+    font-family: var(--font-serif);
+    font-size: 9pt;
+    color: var(--color-muted);
+  }
+}
+
+/* First page - no page number */
+@page :first {
+  @bottom-center {
+    content: none;
+  }
+}
+
+/* Left (verso) pages */
+@page :left {
+  margin-left: var(--margin-outside);
+  margin-right: var(--margin-inside);
+  
+  @top-left {
+    content: env(pub-title);
+    font-family: var(--font-serif);
+    font-size: 8pt;
+    font-style: italic;
+    color: var(--color-muted);
+  }
+}
+
+/* Right (recto) pages */
+@page :right {
+  margin-left: var(--margin-inside);
+  margin-right: var(--margin-outside);
+  
+  @top-right {
+    content: string(chapterTitle);
+    font-family: var(--font-serif);
+    font-size: 8pt;
+    font-style: italic;
+    color: var(--color-muted);
+  }
+}
+
+/* Named pages */
+@page title {
+  margin: 0;
+  @top-left { content: none; }
+  @top-right { content: none; }
+  @bottom-center { content: none; }
+}
+
+@page content {
+  /* Content pages use default settings */
+}
+
+@page appendix {
+  @top-center {
+    content: "Appendix";
+    font-family: var(--font-sans);
+    font-size: 8pt;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+}
+
+/* ==========================================================================
+   3. BASE STYLES
+   ========================================================================== */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-serif);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-base);
+  color: var(--color-text);
+  background: white;
+  counter-reset: page chapter section figure table;
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+}
+
+/* ==========================================================================
+   4. PAGE STRUCTURE
+   ========================================================================== */
+
+.page {
+  width: var(--page-width);
+  height: var(--page-height);
+  position: relative;
+  overflow: hidden;
+  page-break-after: always;
+  break-after: page;
+  background: var(--color-paper);
+}
+
+.page:last-child {
+  page-break-after: auto;
+  break-after: auto;
+}
+
+.content-page {
+  page: content;
+  padding: calc(var(--margin-top) + var(--bleed))
+           calc(var(--margin-outside) + var(--bleed))
+           calc(var(--margin-bottom) + var(--bleed))
+           calc(var(--margin-inside) + var(--bleed));
+}
+
+/* ==========================================================================
+   5. RUNNING HEADERS - string-set, position: running()
+   ========================================================================== */
+
+.running-header {
+  position: running(runningHeader);
+  display: none; /* Hidden, used for content extraction */
+}
+
+.running-title {
+  string-set: chapterTitle content();
+}
+
+/* Chapter title extraction */
+[data-chapter] {
+  string-set: chapterTitle attr(data-chapter);
+}
+
+/* ==========================================================================
+   6. TITLE PAGE
+   ========================================================================== */
+
+.title-page {
+  page: title;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  background: linear-gradient(180deg, var(--color-primary) 0%, #1a252f 100%);
+  color: white;
+}
+
+.title-content {
+  padding: 1in;
+}
+
+.book-title {
+  font-family: var(--font-serif);
+  font-size: 36pt;
+  font-weight: bold;
+  line-height: 1.2;
+  margin-bottom: 0.5in;
+  letter-spacing: 0.05em;
+}
+
+.subtitle {
+  font-size: 14pt;
+  font-style: italic;
+  opacity: 0.9;
+  margin-bottom: 0.25in;
+}
+
+.version {
+  font-size: 11pt;
+  opacity: 0.7;
+}
+
+.ornament {
+  width: 2in;
+  height: 2pt;
+  background: linear-gradient(90deg, transparent, white, transparent);
+  margin: 0.5in auto 0;
+}
+
+/* ==========================================================================
+   7. TYPOGRAPHY
+   ========================================================================== */
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-serif);
+  color: var(--color-primary);
+  page-break-after: avoid;
+  break-after: avoid;
+  margin-bottom: 0.125in;
+}
+
+h2 {
+  font-size: 18pt;
+  border-bottom: 2pt solid var(--color-primary);
+  padding-bottom: 0.0625in;
+  margin-bottom: 0.25in;
+  counter-increment: chapter;
+}
+
+h3 {
+  font-size: 12pt;
+  color: var(--color-secondary);
+  margin-top: 0.25in;
+}
+
+h4 {
+  font-size: 10pt;
+  margin-top: 0.1875in;
+}
+
+p {
+  margin-bottom: 0.125in;
+  text-align: justify;
+  hyphens: auto;
+  orphans: 3;
+  widows: 3;
+}
+
+code {
+  font-family: var(--font-mono);
+  font-size: 9pt;
+  background: var(--color-light);
+  padding: 0.02in 0.05in;
+  border-radius: 2pt;
+}
+
+ul, ol {
+  margin-bottom: 0.125in;
+  padding-left: 0.25in;
+}
+
+li {
+  margin-bottom: 0.0625in;
+}
+
+a {
+  color: var(--color-secondary);
+  text-decoration: underline;
+}
+
+strong {
+  font-weight: bold;
+}
+
+em {
+  font-style: italic;
+}
+
+/* ==========================================================================
+   8. CSS VALUES TESTS
+   ========================================================================== */
+
+/* 8.1 Length Units */
+.length-units {
+  margin-bottom: 0.25in;
+}
+
+.unit-em { font-size: 1.5em; }
+.unit-rem { font-size: 1rem; }
+.unit-ch { width: 40ch; background: var(--color-light); padding: 0.0625in; }
+.unit-ex { line-height: 2ex; }
+.unit-viewport { width: 10vw; height: 5vh; background: var(--color-secondary); color: white; padding: 0.0625in; font-size: 8pt; }
+.unit-physical { width: 1in; height: 2cm; background: var(--color-accent); color: white; padding: 0.0625in; font-size: 8pt; }
+.unit-absolute { width: 72pt; height: 6pc; background: var(--color-success); color: white; padding: 0.0625in; font-size: 8pt; }
+
+/* 8.2 Color Values */
+.color-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.125in;
+  margin-bottom: 0.25in;
+}
+
+.color-box {
+  padding: 0.125in;
+  text-align: center;
+  font-size: 8pt;
+  color: white;
+  border-radius: 3pt;
+}
+
+.color-keyword { background: darkred; }
+.color-hex { background: #336699; }
+.color-rgb { background: rgb(100, 150, 200); }
+.color-rgba { background: rgba(0, 128, 0, 0.7); }
+.color-hsl { background: hsl(270, 60%, 50%); }
+.color-hsla { background: hsla(30, 100%, 50%, 0.8); }
+.color-current { background: currentColor; border: 2pt solid var(--color-primary); color: var(--color-primary); }
+.color-transparent { background: transparent; border: 2pt dashed var(--color-muted); color: var(--color-text); }
+
+/* 8.3 calc() Function */
+.calc-demo {
+  margin-bottom: 0.25in;
+}
+
+.calc-box {
+  width: calc(100% - 1in);
+  background: var(--color-light);
+  padding: calc(0.25in + 0.5em);
+  margin-bottom: 0.125in;
+}
+
+/* 8.4 attr() Function */
+.attr-demo::before {
+  content: attr(data-prefix) " ";
+  font-weight: bold;
+  color: var(--color-accent);
+}
+
+.attr-link::after {
+  content: " [" attr(data-label) "]";
+  font-size: 8pt;
+  color: var(--color-muted);
+}
+
+/* ==========================================================================
+   9. SELECTORS TESTS
+   ========================================================================== */
+
+.selector-tests > * {
+  padding: 0.0625in;
+  margin-bottom: 0.0625in;
+  background: var(--color-light);
+  font-size: 9pt;
+}
+
+.class-selector { border-left: 3pt solid var(--color-secondary); }
+#id-selector { border-left: 3pt solid var(--color-accent); }
+[data-type="test"] { border-left: 3pt solid var(--color-success); }
+[data-attr^="pre"] { border-left: 3pt solid var(--color-warning); }
+[data-attr$="fix"] { border-left: 3pt solid purple; }
+[data-attr*="mid"] { border-left: 3pt solid teal; }
+
+/* Structural pseudo-classes */
+.pseudo-list li:first-child { font-weight: bold; color: var(--color-accent); }
+.pseudo-list li:last-child { font-style: italic; color: var(--color-secondary); }
+.pseudo-list li:nth-child(3) { background: var(--color-light); }
+.pseudo-list li:nth-child(even) { opacity: 0.8; }
+.pseudo-list li:nth-child(odd) { padding-left: 0.125in; }
+
+/* Pseudo-elements */
+.first-letter-demo::first-letter {
+  font-size: 24pt;
+  font-weight: bold;
+  color: var(--color-primary);
+  float: left;
+  line-height: 0.8;
+  padding-right: 0.0625in;
+}
+
+.first-line-demo::first-line {
+  font-variant: small-caps;
+  color: var(--color-secondary);
+}
+
+.before-after-demo::before {
+  content: "→ ";
+  color: var(--color-success);
+}
+
+.before-after-demo::after {
+  content: " ←";
+  color: var(--color-accent);
+}
+
+/* Combinators */
+.combinator-demo > p { color: var(--color-secondary); } /* Child */
+.combinator-demo p + p { font-style: italic; } /* Adjacent sibling */
+.combinator-demo p ~ p { border-left: 2pt solid var(--color-muted); padding-left: 0.125in; } /* General sibling */
+
+/* :not() pseudo-class */
+.not-demo span {
+  display: inline-block;
+  padding: 0.0625in;
+  margin: 0.0625in;
+  background: var(--color-light);
+}
+
+.not-demo span:not(.highlight) {
+  opacity: 0.5;
+}
+
+.not-demo .highlight {
+  background: var(--color-warning);
+  font-weight: bold;
+}
+
+/* ==========================================================================
+   10. COUNTERS & GENERATED CONTENT
+   ========================================================================== */
+
+/* Custom counter */
+.counter-demo {
+  counter-reset: section;
+}
+
+.counter-h4 {
+  counter-increment: section;
+}
+
+.counter-h4::before {
+  content: "Section " counter(section) ": ";
+  color: var(--color-secondary);
+}
+
+/* Nested counters */
+.nested-counter {
+  counter-reset: item;
+  list-style-type: none;
+  padding-left: 0;
+}
+
+.nested-counter li {
+  counter-increment: item;
+}
+
+.nested-counter li::before {
+  content: counters(item, ".") " ";
+  font-weight: bold;
+  color: var(--color-primary);
+}
+
+.nested-counter ol {
+  counter-reset: item;
+  list-style-type: none;
+  padding-left: 0.25in;
+}
+
+/* target-counter() */
+.target-counter-ref::after {
+  content: target-counter(attr(href), page);
+  font-weight: bold;
+  color: var(--color-accent);
+}
+
+/* Quotes */
+.quotes-demo {
+  quotes: '"' '"' "'" "'";
+}
+
+.quotes-demo q {
+  font-style: italic;
+}
+
+.quotes-demo q::before {
+  content: open-quote;
+}
+
+.quotes-demo q::after {
+  content: close-quote;
+}
+
+/* ==========================================================================
+   11. MULTI-COLUMN LAYOUT
+   ========================================================================== */
+
+.two-columns {
+  column-count: 2;
+  column-gap: 0.25in;
+  column-rule: 1pt solid var(--color-muted);
+  margin-bottom: 0.25in;
+}
+
+.column-demo > div {
+  margin-bottom: 0.125in;
+  padding: 0.125in;
+  background: var(--color-light);
+}
+
+.col-width {
+  column-width: 2in;
+  column-count: auto;
+}
+
+.col-gap {
+  column-count: 2;
+  column-gap: 0.25in;
+}
+
+.col-rule {
+  column-count: 2;
+  column-rule: 1pt solid gray;
+}
+
+.span-demo {
+  column-count: 2;
+  column-gap: 0.25in;
+}
+
+.column-span-all {
+  column-span: all;
+  background: var(--color-primary);
+  color: white;
+  padding: 0.125in;
+  text-align: center;
+  margin: 0.125in 0;
+}
+
+.column-fill-demo {
+  column-count: 2;
+  column-fill: balance;
+}
+
+/* ==========================================================================
+   12. FRAGMENTATION
+   ========================================================================== */
+
+.break-demo {
+  margin-bottom: 0.25in;
+}
+
+.break-inside-avoid {
+  break-inside: avoid;
+  background: var(--color-light);
+  padding: 0.125in;
+  border: 1pt solid var(--color-muted);
+}
+
+.orphans-widows-demo p {
+  orphans: 3;
+  widows: 3;
+}
+
+.box-decoration-demo {
+  margin-bottom: 0.25in;
+}
+
+.clone-demo {
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  background: linear-gradient(90deg, var(--color-secondary), var(--color-primary));
+  color: white;
+  padding: 0.0625in 0.125in;
+  border-radius: 3pt;
+}
+
+/* ==========================================================================
+   13. PAGE FLOATS
+   ========================================================================== */
+
+.float-reference-demo {
+  position: relative;
+}
+
+.page-float-top {
+  float: block-start;
+  float-reference: page;
+  width: 2in;
+  padding: 0.125in;
+  background: var(--color-secondary);
+  color: white;
+  font-size: 8pt;
+  margin-bottom: 0.125in;
+}
+
+.float-values {
+  column-count: 2;
+}
+
+.clear-demo {
+  overflow: hidden;
+  margin-bottom: 0.25in;
+}
+
+.float-left-box {
+  float: left;
+  width: 1in;
+  padding: 0.125in;
+  background: var(--color-primary);
+  color: white;
+  font-size: 8pt;
+  margin-right: 0.125in;
+}
+
+.float-right-box {
+  float: right;
+  width: 1in;
+  padding: 0.125in;
+  background: var(--color-accent);
+  color: white;
+  font-size: 8pt;
+  margin-left: 0.125in;
+}
+
+.clear-both {
+  clear: both;
+  background: var(--color-light);
+  padding: 0.125in;
+}
+
+/* Footnotes */
+.footnote {
+  float: footnote;
+  font-size: 8pt;
+}
+
+::footnote-call {
+  content: counter(footnote);
+  font-size: 7pt;
+  vertical-align: super;
+  color: var(--color-secondary);
+}
+
+::footnote-marker {
+  content: counter(footnote) ". ";
+  font-weight: bold;
+}
+
+/* ==========================================================================
+   14. WRITING MODES
+   ========================================================================== */
+
+.writing-mode-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 0.125in;
+  margin-bottom: 0.25in;
+}
+
+.writing-mode-grid > div {
+  padding: 0.125in;
+  background: var(--color-light);
+  min-height: 1in;
+}
+
+.wm-horizontal-tb {
+  writing-mode: horizontal-tb;
+}
+
+.wm-vertical-rl {
+  writing-mode: vertical-rl;
+  height: 1.5in;
+}
+
+.wm-vertical-lr {
+  writing-mode: vertical-lr;
+  height: 1.5in;
+}
+
+/* Text orientation */
+.text-orientation-demo {
+  display: flex;
+  gap: 0.125in;
+  margin-bottom: 0.25in;
+}
+
+.text-orientation-demo > div {
+  writing-mode: vertical-rl;
+  height: 1in;
+  padding: 0.125in;
+  background: var(--color-light);
+  font-size: 9pt;
+}
+
+.to-mixed { text-orientation: mixed; }
+.to-upright { text-orientation: upright; }
+.to-sideways { text-orientation: sideways; }
+
+/* Text combine upright (tate-chu-yoko) */
+.tcy-demo {
+  writing-mode: vertical-rl;
+  height: 1.5in;
+  padding: 0.125in;
+  background: var(--color-light);
+}
+
+.tcy {
+  text-combine-upright: all;
+  -webkit-text-combine: horizontal;
+  -ms-text-combine-horizontal: all;
+}
+
+/* Bidi */
+.bidi-demo {
+  margin-bottom: 0.25in;
+}
+
+.rtl-text {
+  direction: rtl;
+  unicode-bidi: bidi-override;
+  background: var(--color-light);
+  padding: 0.0625in;
+}
+
+.mixed-bidi {
+  unicode-bidi: plaintext;
+}
+
+/* ==========================================================================
+   15. FLEXBOX
+   ========================================================================== */
+
+.flex-container-demo {
+  display: flex;
+  gap: 0.125in;
+  margin-bottom: 0.25in;
+}
+
+.flex-item {
+  flex: 1;
+  padding: 0.25in;
+  background: var(--color-secondary);
+  color: white;
+  text-align: center;
+  font-weight: bold;
+}
+
+.flex-direction-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.125in;
+  margin-bottom: 0.25in;
+}
+
+.flex-row, .flex-row-reverse, .flex-column {
+  display: flex;
+  background: var(--color-light);
+  padding: 0.0625in;
+  min-height: 0.75in;
+}
+
+.flex-row { flex-direction: row; }
+.flex-row-reverse { flex-direction: row-reverse; }
+.flex-column { flex-direction: column; }
+
+.flex-direction-grid span {
+  padding: 0.0625in;
+  background: var(--color-primary);
+  color: white;
+  font-size: 7pt;
+  margin: 0.03in;
+}
+
+.flex-justify-demo {
+  display: grid;
+  gap: 0.0625in;
+  margin-bottom: 0.25in;
+}
+
+.flex-justify-demo > div {
+  display: flex;
+  background: var(--color-light);
+  padding: 0.0625in;
+}
+
+.justify-start { justify-content: flex-start; }
+.justify-center { justify-content: center; }
+.justify-end { justify-content: flex-end; }
+.justify-between { justify-content: space-between; }
+.justify-around { justify-content: space-around; }
+
+.flex-justify-demo span {
+  padding: 0.0625in;
+  background: var(--color-secondary);
+  color: white;
+  font-size: 8pt;
+}
+
+.flex-grow-demo {
+  display: flex;
+  gap: 0.0625in;
+}
+
+.flex-grow-demo > div {
+  padding: 0.125in;
+  background: var(--color-primary);
+  color: white;
+  text-align: center;
+  font-size: 8pt;
+}
+
+.grow-1 { flex-grow: 1; }
+.grow-2 { flex-grow: 2; }
+
+/* ==========================================================================
+   16. TRANSFORMS & FILTERS
+   ========================================================================== */
+
+.transform-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.25in;
+  margin-bottom: 0.25in;
+}
+
+.transform-box {
+  width: 1in;
+  height: 0.5in;
+  background: var(--color-secondary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 8pt;
+}
+
+.rotate { transform: rotate(15deg); }
+.scale { transform: scale(0.8); }
+.skew { transform: skewX(10deg); }
+.translate { transform: translate(5px, 5px); }
+
+.origin-demo {
+  display: flex;
+  gap: 0.25in;
+  margin-bottom: 0.25in;
+}
+
+.origin-demo > div {
+  width: 0.75in;
+  height: 0.5in;
+  background: var(--color-accent);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 7pt;
+  transform: rotate(15deg);
+}
+
+.origin-center { transform-origin: center; }
+.origin-top-left { transform-origin: top left; }
+.origin-bottom-right { transform-origin: bottom right; }
+
+.filter-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.125in;
+  margin-bottom: 0.25in;
+}
+
+.filter-box {
+  padding: 0.125in;
+  background: var(--color-primary);
+  color: white;
+  text-align: center;
+  font-size: 8pt;
+}
+
+.filter-blur { filter: blur(1px); }
+.filter-grayscale { filter: grayscale(100%); }
+.filter-sepia { filter: sepia(80%); }
+.filter-brightness { filter: brightness(1.3); }
+.filter-contrast { filter: contrast(1.5); }
+.filter-opacity { filter: opacity(0.5); }
+
+.blend-demo {
+  display: flex;
+  gap: 0.125in;
+  background: linear-gradient(90deg, var(--color-accent), var(--color-secondary));
+  padding: 0.125in;
+}
+
+.blend-demo > div {
+  flex: 1;
+  padding: 0.125in;
+  background: white;
+  text-align: center;
+  font-size: 8pt;
+}
+
+.blend-multiply { mix-blend-mode: multiply; }
+.blend-screen { mix-blend-mode: screen; }
+.blend-overlay { mix-blend-mode: overlay; }
+
+/* ==========================================================================
+   17. LOGICAL PROPERTIES
+   ========================================================================== */
+
+.logical-box {
+  background: var(--color-light);
+  padding: 0.125in;
+  margin-bottom: 0.25in;
+}
+
+.dimension-demo {
+  inline-size: 3in;
+  block-size: auto;
+  min-inline-size: 2in;
+  max-inline-size: 4in;
+}
+
+.logical-margin-demo, .logical-padding-demo, .logical-border-demo {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.125in;
+  margin-bottom: 0.25in;
+}
+
+.logical-margin-demo > div, .logical-padding-demo > div, .logical-border-demo > div {
+  background: var(--color-light);
+  padding: 0.125in;
+  font-size: 8pt;
+}
+
+.margin-block { margin-block: 0.25in; background: var(--color-secondary); color: white; }
+.margin-inline { margin-inline: 0.5in; }
+.margin-block-start { margin-block-start: 0.25in; }
+.margin-inline-end { margin-inline-end: 0.5in; }
+
+.padding-block { padding-block: 0.25in; }
+.padding-inline { padding-inline: 0.5in; }
+
+.border-block { border-block: 2pt solid var(--color-primary); }
+.border-inline { border-inline: 2pt dashed var(--color-secondary); }
+.border-block-start { border-block-start: 2pt solid var(--color-accent); }
+.border-inline-end { border-inline-end: 2pt dotted var(--color-success); }
+
+.inset-demo {
+  position: relative;
+  height: 1in;
+  background: var(--color-light);
+  margin-bottom: 0.25in;
+}
+
+.inset-demo > div {
+  position: absolute;
+  background: var(--color-secondary);
+  color: white;
+  padding: 0.0625in;
+  font-size: 7pt;
+}
+
+.inset-block {
+  inset-block: 0.125in;
+  inset-inline-start: 0;
+  inline-size: 1in;
+}
+
+.inset-inline {
+  inset-inline: 0.25in;
+  inset-block-start: 0;
+  block-size: 0.5in;
+}
+
+/* ==========================================================================
+   18. TEXT PROPERTIES
+   ========================================================================== */
+
+.text-demo {
+  margin-bottom: 0.25in;
+}
+
+.text-demo p {
+  margin-bottom: 0.125in;
+  padding: 0.0625in;
+  background: var(--color-light);
+}
+
+.text-indent { text-indent: 0.25in; }
+.text-align-justify { text-align: justify; }
+.text-transform-upper { text-transform: uppercase; }
+.letter-spacing { letter-spacing: 0.1em; }
+.word-spacing { word-spacing: 0.2em; }
+
+.decoration-demo p {
+  margin-bottom: 0.125in;
+}
+
+.underline { text-decoration: underline; }
+.overline { text-decoration: overline; }
+.line-through { text-decoration: line-through; }
+.decoration-style { text-decoration: underline; text-decoration-style: wavy; }
+.decoration-color { text-decoration: underline; text-decoration-color: red; }
+
+.emphasis-demo p {
+  margin-bottom: 0.125in;
+}
+
+.emphasis-dot { text-emphasis: dot; text-emphasis-position: over; }
+.emphasis-circle { text-emphasis: circle; }
+.emphasis-sesame { text-emphasis: sesame; }
+
+.hyphenation-demo {
+  margin-bottom: 0.25in;
+}
+
+.hyphenation-demo p {
+  margin-bottom: 0.125in;
+  padding: 0.125in;
+  background: var(--color-light);
+  width: 2.5in;
+}
+
+.hyphens-auto { hyphens: auto; }
+.hyphens-none { hyphens: none; }
+
+.line-break-demo p {
+  margin-bottom: 0.125in;
+  width: 2in;
+  background: var(--color-light);
+  padding: 0.0625in;
+}
+
+.word-break { word-break: break-all; }
+.overflow-wrap { overflow-wrap: break-word; }
+
+/* ==========================================================================
+   19. BACKGROUNDS & BORDERS
+   ========================================================================== */
+
+.background-demo {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.125in;
+  margin-bottom: 0.25in;
+}
+
+.background-demo > div {
+  height: 0.75in;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 8pt;
+  text-shadow: 1px 1px 2px black;
+}
+
+.bg-color { background-color: var(--color-primary); }
+.bg-gradient { background: linear-gradient(135deg, var(--color-secondary), var(--color-accent)); }
+.bg-radial { background: radial-gradient(circle, var(--color-success), var(--color-primary)); }
+.bg-multiple { 
+  background: 
+    linear-gradient(45deg, transparent 40%, var(--color-accent) 40%, var(--color-accent) 60%, transparent 60%),
+    var(--color-primary);
+}
+
+.bg-size-demo {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.125in;
+  margin-bottom: 0.25in;
+}
+
+.bg-size-demo > div {
+  height: 0.75in;
+  background-color: var(--color-light);
+  background-image: linear-gradient(45deg, var(--color-secondary) 25%, transparent 25%, transparent 75%, var(--color-secondary) 75%);
+  background-size: 0.25in 0.25in;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 8pt;
+}
+
+.bg-cover { background-size: cover; }
+.bg-contain { background-size: contain; }
+.bg-position { background-position: center; }
+
+.border-radius-demo {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.125in;
+  margin-bottom: 0.25in;
+}
+
+.border-radius-demo > div {
+  height: 0.6in;
+  background: var(--color-secondary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 7pt;
+}
+
+.radius-uniform { border-radius: 6pt; }
+.radius-asymmetric { border-radius: 12pt 3pt; }
+.radius-elliptical { border-radius: 50% / 25%; }
+.radius-circle { border-radius: 50%; width: 0.6in; }
+
+.shadow-demo {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.25in;
+  margin-bottom: 0.25in;
+}
+
+.shadow-demo > div {
+  height: 0.6in;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 8pt;
+}
+
+.shadow-basic { box-shadow: 3pt 3pt 6pt rgba(0,0,0,0.3); }
+.shadow-inset { box-shadow: inset 2pt 2pt 4pt rgba(0,0,0,0.2); }
+.shadow-multiple { box-shadow: 2pt 2pt 4pt var(--color-secondary), -2pt -2pt 4pt var(--color-accent); }
+
+.border-image-demo {
+  border: 8pt solid transparent;
+  border-image: linear-gradient(45deg, var(--color-secondary), var(--color-accent)) 1;
+  padding: 0.125in;
+  margin-bottom: 0.25in;
+}
+
+/* ==========================================================================
+   20. TABLES
+   ========================================================================== */
+
+.styled-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 0.25in;
+  font-size: 9pt;
+}
+
+.styled-table caption {
+  font-weight: bold;
+  margin-bottom: 0.0625in;
+  text-align: left;
+  color: var(--color-primary);
+}
+
+.styled-table th,
+.styled-table td {
+  border: 1pt solid var(--color-muted);
+  padding: 0.0625in;
+  text-align: left;
+}
+
+.styled-table th {
+  background: var(--color-primary);
+  color: white;
+}
+
+.styled-table tbody tr:nth-child(even) {
+  background: var(--color-light);
+}
+
+.styled-table tfoot {
+  font-size: 8pt;
+  color: var(--color-muted);
+}
+
+.table-props {
+  column-count: 2;
+  font-size: 9pt;
+  margin-bottom: 0.25in;
+}
+
+/* Repeated headers */
+.repeat-header-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 9pt;
+}
+
+.repeat-header-table thead {
+  display: table-header-group;
+  /* repeat-on-break: header; */
+}
+
+.repeat-header-table th,
+.repeat-header-table td {
+  border: 1pt solid var(--color-muted);
+  padding: 0.0625in;
+}
+
+.repeat-header-table th {
+  background: var(--color-secondary);
+  color: white;
+}
+
+/* ==========================================================================
+   21. IMAGES & MEDIA
+   ========================================================================== */
+
+.image-resolution-demo {
+  background: var(--color-light);
+  padding: 0.125in;
+  margin-bottom: 0.25in;
+}
+
+.object-fit-demo {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.125in;
+  margin-bottom: 0.25in;
+}
+
+.object-fit-demo > div {
+  height: 0.6in;
+  background: var(--color-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 7pt;
+  border: 1pt solid var(--color-muted);
+}
+
+.svg-demo {
+  width: 2in;
+  height: 1.25in;
+  border: 1pt solid var(--color-muted);
+  margin-bottom: 0.125in;
+}
+
+.svg-rect {
+  fill: var(--color-secondary);
+  stroke: var(--color-primary);
+  stroke-width: 2;
+}
+
+.svg-circle {
+  fill: var(--color-accent);
+  fill-opacity: 0.7;
+  stroke: var(--color-primary);
+  stroke-width: 2;
+}
+
+.svg-line {
+  stroke: var(--color-success);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-dasharray: 5, 3;
+}
+
+.svg-props {
+  font-size: 9pt;
+  column-count: 2;
+}
+
+/* ==========================================================================
+   22. RUBY
+   ========================================================================== */
+
+.ruby-demo {
+  margin-bottom: 0.25in;
+  font-size: 12pt;
+}
+
+.ruby-demo ruby {
+  ruby-align: center;
+}
+
+.ruby-demo rt {
+  font-size: 6pt;
+  color: var(--color-secondary);
+}
+
+.ruby-align-demo p {
+  margin-bottom: 0.125in;
+  font-size: 12pt;
+}
+
+.ruby-start ruby { ruby-align: start; }
+.ruby-center ruby { ruby-align: center; }
+.ruby-space-between ruby { ruby-align: space-between; }
+
+.ruby-position-demo p {
+  margin-bottom: 0.25in;
+  font-size: 12pt;
+}
+
+.ruby-over ruby { ruby-position: over; }
+.ruby-under ruby { ruby-position: under; }
+
+.cjk-demo {
+  margin-bottom: 0.25in;
+}
+
+.cjk-demo p {
+  margin-bottom: 0.125in;
+  padding: 0.0625in;
+  background: var(--color-light);
+}
+
+.cjk-line-break { line-break: strict; }
+.cjk-word-break { word-break: keep-all; }
+
+/* ==========================================================================
+   23. CLIP & MASK
+   ========================================================================== */
+
+.clip-demo {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.125in;
+  margin-bottom: 0.25in;
+}
+
+.clip-demo > div {
+  height: 0.75in;
+  background: var(--color-secondary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 8pt;
+}
+
+.clip-circle { clip-path: circle(40%); }
+.clip-ellipse { clip-path: ellipse(45% 35%); }
+.clip-polygon { clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); }
+.clip-inset { clip-path: inset(10% 10% 10% 10% round 5pt); }
+
+.clip-shapes {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.25in;
+  margin-bottom: 0.25in;
+}
+
+.clip-shapes > div {
+  height: 0.75in;
+  background: var(--color-accent);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 8pt;
+}
+
+.shape-triangle { clip-path: polygon(50% 0%, 0% 100%, 100% 100%); }
+.shape-pentagon { clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%); }
+.shape-star { clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
+
+/* ==========================================================================
+   24. SUMMARY PAGE
+   ========================================================================== */
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.25in;
+  margin-bottom: 0.25in;
+}
+
+.summary-category {
+  background: var(--color-light);
+  padding: 0.125in;
+  border-radius: 3pt;
+}
+
+.summary-category h4 {
+  color: var(--color-primary);
+  font-size: 10pt;
+  margin-bottom: 0.0625in;
+  border-bottom: 1pt solid var(--color-primary);
+  padding-bottom: 0.0625in;
+}
+
+.summary-category ul {
+  font-size: 8pt;
+  margin: 0;
+  padding-left: 0.1875in;
+}
+
+.summary-category li {
+  margin-bottom: 0.03in;
+}
+
+.verification-note {
+  background: var(--color-primary);
+  color: white;
+  padding: 0.25in;
+  border-radius: 3pt;
+}
+
+.verification-note h3 {
+  color: white;
+  margin-bottom: 0.125in;
+}
+
+.verification-note ol {
+  font-size: 9pt;
+  column-count: 2;
+}
+
+/* ==========================================================================
+   25. APPENDIX
+   ========================================================================== */
+
+.appendix-page {
+  page: appendix;
+}
+
+.doc-info {
+  display: grid;
+  grid-template-columns: 1in auto;
+  gap: 0.0625in 0.25in;
+  margin-bottom: 0.25in;
+  font-size: 9pt;
+}
+
+.doc-info dt {
+  font-weight: bold;
+  color: var(--color-primary);
+}
+
+.doc-info dd {
+  margin: 0;
+}
+
+.limitations {
+  font-size: 9pt;
+  color: var(--color-muted);
+}
+
+.limitations li {
+  margin-bottom: 0.0625in;
+}
+
+.end-mark {
+  text-align: center;
+  margin-top: 0.5in;
+  font-style: italic;
+  color: var(--color-muted);
+}
+
+/* ==========================================================================
+   26. PRINT OVERRIDES
+   ========================================================================== */
+
+@media print {
+  body {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  
+  .page {
+    margin: 0;
+    padding: 0;
+  }
+}
+
+/* Vivliostyle-specific media */
+@media vivliostyle {
+  /* Vivliostyle-specific adjustments if needed */
+}
