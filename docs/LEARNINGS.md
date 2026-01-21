@@ -1,5 +1,370 @@
 # Key Learnings: PDF Rendering Engine Comparison
 
+## Session 2026-01-20: Dark Theme & CMYK Color Handling
+
+### Critical Discovery: device-cmyk() Support Is Extremely Limited
+
+**Finding:** The CSS Color Level 4 `device-cmyk()` function has very limited support across rendering engines.
+
+| Engine | device-cmyk() Support | Gradients with device-cmyk() |
+|--------|----------------------|------------------------------|
+| PagedJS (Chromium) | ❌ No | ❌ No |
+| Vivliostyle (Chromium) | ❌ No | ❌ No |
+| WeasyPrint < v63 | ❌ No | ❌ No |
+| WeasyPrint v68+ | ✅ Yes | ❌ Crashes with NotImplementedError |
+
+**Impact:** Cannot use `device-cmyk()` for TAC-controlled colors in Chromium-based engines. WeasyPrint v68+ supports it for solid colors only.
+
+**Solution Pattern:**
+```css
+/* Always provide RGB fallback BEFORE device-cmyk() */
+body {
+  background-color: #555555;                    /* RGB fallback */
+  background-color: device-cmyk(0.5 0.4 0.4 1); /* TAC-safe if supported */
+}
+
+/* For gradients, ONLY use RGB - device-cmyk() crashes WeasyPrint */
+.gradient-bg {
+  background: linear-gradient(180deg, #1a1a1a 0%, #333333 100%);
+  /* DO NOT use device-cmyk() in gradients */
+}
+```
+
+---
+
+### Critical Discovery: Ghostscript inkcov Measures After Internal Conversion
+
+**Finding:** The Ghostscript `inkcov` device measures TAC by first converting ALL content to CMYK internally. This means:
+
+1. RGB colors are converted to CMYK using Ghostscript's default (or specified) ICC profile
+2. Even `device-cmyk()` colors in the PDF may be converted again
+3. Reported TAC reflects Ghostscript's color conversion, NOT necessarily the actual CMYK values in the PDF
+
+**Impact:** A PDF with proper `device-cmyk(0.5 0.4 0.4 1)` (230% TAC) may still report ~400% TAC because Ghostscript converts it differently during measurement.
+
+**Example Observed:**
+```
+Input: device-cmyk(0.5 0.4 0.4 1) = 230% TAC by definition
+Ghostscript inkcov reports: ~398% TAC (4-plate rich black)
+```
+
+**Root Cause:** The `inkcov` device doesn't preserve device CMYK values - it processes all colors through its conversion pipeline.
+
+**Workaround:** Consider validating actual CMYK values in the PDF using other tools (e.g., Adobe Preflight) rather than relying solely on Ghostscript inkcov for device-cmyk() content.
+
+---
+
+### Critical Discovery: Vivliostyle Does NOT Render @page or Body Backgrounds
+
+**Finding:** Vivliostyle CLI does NOT render backgrounds set on `@page` or `body` elements. This results in very low TAC readings (17% vs 398%) because there's no actual background color in the output.
+
+**Symptoms:**
+- Vivliostyle PDFs show 11-17% TAC while PagedJS/WeasyPrint show 398% TAC
+- Visual inspection confirms backgrounds are missing in Vivliostyle output
+- Page count may differ (11 pages vs 16 pages)
+
+**Impact:** Vivliostyle appears "TAC-compliant" but is actually missing content.
+
+**Recommendation:** Do not use Vivliostyle for documents with dark backgrounds. Use WeasyPrint for production.
+
+---
+
+### The linkicc -k Flag Does NOT Limit TAC
+
+**Finding:** The Little CMS `linkicc` tool's `-k` flag controls **K preservation (GCR - Gray Component Replacement)**, NOT TAC limiting.
+
+**What -k does:** Preserves the black (K) channel during profile transformation
+**What -k does NOT do:** Automatically reduce Total Area Coverage to 240%
+
+**Impact:** Cannot use linkicc -k as a TAC limiting solution.
+
+**Alternative:** Use an ICC profile with built-in TAC limits (e.g., CGATS21_CRPC1.icc which limits to ~300%) or manually adjust colors in source files.
+
+---
+
+### CSS Variables Do NOT Resolve in @page Rules
+
+**Finding:** CSS custom properties (variables) do not work in `@page` rules across all tested engines.
+
+**Broken:**
+```css
+:root {
+  --page-bg: device-cmyk(0.5 0.4 0.4 1);
+}
+@page {
+  background-color: var(--page-bg); /* IGNORED - no variable resolution */
+}
+```
+
+**Working:**
+```css
+@page {
+  background-color: device-cmyk(0.5 0.4 0.4 1); /* Hardcoded required */
+}
+```
+
+**Impact:** Cannot use variables to manage colors in @page rules. Must use hardcoded values.
+
+---
+
+### WeasyPrint Gradient Crash with device-cmyk()
+
+**Finding:** WeasyPrint v68+ crashes with `NotImplementedError` when `device-cmyk()` is used inside CSS gradients.
+
+**Error:**
+```
+NotImplementedError: ... in tinycss2/color4.py
+```
+
+**Cause:** tinycss2 tries to convert device-cmyk() to sRGB for gradient processing but device-cmyk() cannot be reliably converted.
+
+**Solution:**
+```css
+/* WRONG - crashes WeasyPrint */
+.bg {
+  background: linear-gradient(180deg, device-cmyk(0 0 0 1) 0%, device-cmyk(0.5 0.4 0.4 1) 100%);
+}
+
+/* CORRECT - use RGB fallback for gradients */
+.bg {
+  background: linear-gradient(180deg, #000000 0%, #333333 100%);
+}
+```
+
+---
+
+### Any Dark RGB Color Converts to ~400% TAC Rich Black
+
+**Finding:** Ghostscript's default RGB→CMYK conversion converts ANY dark color (including pure black #000000) to a 4-plate rich black with ~400% TAC.
+
+**Colors Tested:**
+| RGB Input | Ghostscript TAC Output |
+|-----------|------------------------|
+| #000000 (pure black) | ~399% TAC |
+| #1a1a1a (near-black) | ~398% TAC |
+| #333333 (dark gray) | ~398% TAC |
+| #555555 (medium gray) | ~398% TAC |
+
+**Impact:** Cannot achieve low TAC with dark backgrounds using RGB colors - they all convert to high-TAC rich black.
+
+**Solution:** Use very light colors (e.g., #d0dce8 = ~40-80% TAC) or use device-cmyk() with WeasyPrint.
+
+---
+
+### Dimm City Field Guide TAC Solution
+
+**Finding:** The Dimm City Field Guide project solved TAC compliance by using:
+
+```css
+device-cmyk(0.5 0.4 0.4 1)
+/* C:50 + M:40 + Y:40 + K:100 = 230% TAC */
+```
+
+This is a "TAC-safe rich black" that:
+1. Produces a deep, rich black appearance
+2. Stays within the 240% TAC limit
+3. Avoids the ~400% TAC that Ghostscript generates from RGB black
+
+**Required:** WeasyPrint v67+ (not Chromium-based engines)
+
+---
+
+### WeasyPrint v67+ Native PDF/X Generation
+
+**Finding:** WeasyPrint v67 added native PDF/X generation, eliminating the need for Ghostscript conversion.
+
+**DriveThruRPG-Ready Command:**
+```bash
+weasyprint \
+  --base-url . \
+  --pdf-variant pdf/x-1a \
+  --dpi 300 \
+  --full-fonts \
+  book.html interior.pdf
+```
+
+**Key Options Discovered:**
+| Option | Purpose |
+|--------|---------|
+| `--base-url .` | Resolve relative paths from current directory |
+| `--pdf-variant pdf/x-1a` | DriveThruRPG-compatible PDF/X |
+| `--dpi 300` | Print-quality image resolution |
+| `--full-fonts` | Embed complete fonts (not subsetted) |
+
+**Benefits:**
+1. **Preserves device-cmyk() colors**: No double-conversion through Ghostscript
+2. **No TAC measurement artifacts**: device-cmyk() colors stay as specified
+3. **Simpler pipeline**: One command instead of two
+4. **Smaller files**: Direct generation is more efficient
+
+**Critical DriveThruRPG Finding:**
+| Variant | DriveThruRPG Status |
+|---------|---------------------|
+| `pdf/x-1a` | ✅ Accepted (but see font warning below) |
+| `pdf/x-3` | ✅ **Recommended** (preserves fonts) |
+| `pdf/x-4` | ❌ **NOT accepted** |
+| `pdf/x-5g` | ❌ Not accepted |
+
+**Impact:** Despite PDF/X-4 being preferred for modern print workflows, DriveThruRPG explicitly requires PDF/X-1a or PDF/X-3.
+
+---
+
+### CRITICAL: PDF/X-1a Converts Fonts to Outlines
+
+**Finding:** WeasyPrint's `--pdf-variant pdf/x-1a` converts ALL fonts to vector outlines (paths). This destroys searchable/selectable text.
+
+**Symptoms:**
+- Fonts appear "mangled" or rough at certain zoom levels
+- Text is not searchable in PDF viewer
+- Text cannot be selected or copied
+- `pdffonts output.pdf` shows 0 embedded fonts
+
+**Font Preservation by PDF/X Variant:**
+| Variant | Font Handling | File Size | Recommendation |
+|---------|---------------|-----------|----------------|
+| **pdf/x-3** | ✅ Fonts embedded | ~890 KB | **Use this** |
+| **pdf/x-1a** | ❌ Fonts → outlines | ~210 KB | Avoid |
+| **pdf/x-4** | ✅ Fonts embedded | ~890 KB | Not accepted by DriveThruRPG |
+
+**Solution:**
+```bash
+# CORRECT - preserves fonts
+weasyprint --pdf-variant pdf/x-3 --full-fonts input.html output.pdf
+
+# WRONG - converts fonts to outlines
+weasyprint --pdf-variant pdf/x-1a --full-fonts input.html output.pdf
+```
+
+**Impact:** Always use `pdf/x-3` for WeasyPrint output. DriveThruRPG accepts both variants.
+
+---
+
+### CRITICAL: TAC Limiting Rasterizes PDFs (Destroys Fonts)
+
+**Finding:** The TAC limiting process (`limit-tac.ts`) uses a TIFF pipeline that **rasterizes all PDF content**. This destroys:
+- All embedded fonts (text becomes raster images)
+- Vector graphics (become raster images)
+- Searchable/selectable text
+
+**How it works:**
+1. PDF pages → TIFF images (rasterization)
+2. Apply ICC profile to limit TAC
+3. TIFF images → PDF pages (re-assembly)
+
+**Symptoms after TAC limiting:**
+- `pdffonts output.pdf` shows 0 fonts
+- Text appears pixelated at high zoom
+- File size may be larger or smaller depending on content
+- PDF is essentially a "scanned document"
+
+**Solution:** Skip TAC limiting when TAC is already ≤240%. The pipeline now automatically:
+1. Checks TAC before limiting
+2. If TAC ≤ 240%: Copies original (preserves fonts)
+3. If TAC > 240%: Applies limiting (warns about font loss)
+
+**Best Practice:** Design for TAC compliance from the start using `device-cmyk()` colors to avoid needing TAC limiting.
+
+---
+
+### K-Only Text for TAC Safety
+
+**Finding:** Using K-only (black only) for body text is the safest approach for TAC compliance.
+
+```css
+body {
+  color: device-cmyk(0% 0% 0% 100%); /* Pure K = 100% TAC */
+}
+```
+
+**Benefits:**
+1. **Lowest possible TAC** for text content
+2. **Sharper text rendering** (single plate alignment)
+3. **Reduces TAC headroom** used by text, leaving more for images/backgrounds
+
+**When to use rich black vs K-only:**
+| Content | Recommended |
+|---------|-------------|
+| Body text (small type) | K-only: `device-cmyk(0% 0% 0% 100%)` |
+| Large headlines | K-only or TAC-safe rich black |
+| Large solid backgrounds | TAC-safe rich black: `device-cmyk(50% 40% 40% 100%)` |
+
+---
+
+### DriveThruRPG Common Failure Points
+
+**Finding:** 90% of DriveThruRPG upload failures are caused by these issues:
+
+1. **Page size doesn't include bleed**
+   - For 6×9 trim: final must be **6.125" × 9.25"** (not 6.25" × 9.25")
+   - Bleed is 0.125" on outside 3 edges only
+
+2. **RGB colors in the PDF**
+   - Use `device-cmyk()` for all CSS colors
+   - Define `@color-profile device-cmyk { src: url(ICC); }`
+
+3. **TAC exceeds 240%**
+   - Use K-only text
+   - Keep backgrounds mostly-K
+   - Avoid heavy image overlays on dark backgrounds
+
+4. **Fonts not properly embedded**
+   - Use `--full-fonts` flag
+   - Verify with `pdffonts output.pdf`
+
+5. **Wrong PDF/X variant**
+   - Use `pdf/x-1a` (not pdf/x-4)
+   - DriveThru explicitly requires X-1a or X-3
+
+---
+
+### @color-profile CSS Rule for ICC Profiles (v67+)
+
+**Finding:** WeasyPrint v67+ supports the CSS `@color-profile` at-rule for custom ICC profiles with rendering intents.
+
+**Usage:**
+```css
+@color-profile device-cmyk {
+  src: url("CGATS21_CRPC1.icc");
+  rendering-intent: relative-colorimetric;
+}
+
+body {
+  background-color: device-cmyk(0.5 0.4 0.4 1);
+}
+```
+
+**Rendering Intents:**
+| Intent | Best For |
+|--------|----------|
+| `relative-colorimetric` | General print (preserves in-gamut colors) |
+| `absolute-colorimetric` | Proofing (exact colors) |
+| `perceptual` | Photos with out-of-gamut colors |
+| `saturation` | Business graphics, charts |
+
+**Impact:** Full control over color conversion without Ghostscript, including TAC-limiting ICC profiles.
+
+---
+
+### Theme Parameter for Build Scripts
+
+**Finding:** The build scripts (PagedJS, Vivliostyle, WeasyPrint) now support a `--theme` parameter to control which theme CSS is concatenated.
+
+**Usage:**
+```bash
+# Use dark-theme (or any custom theme)
+bun run scripts/batch-process.ts --theme dark-theme
+
+# Skip theme CSS entirely
+bun run scripts/batch-process.ts --theme none
+
+# Default behavior (kitchen-sink theme)
+bun run scripts/batch-process.ts
+```
+
+**Impact:** Allows testing dark themes without kitchen-sink.css overriding backgrounds with white.
+
+---
+
 ## Most Valuable Insights
 
 ### 1. Silent Failures Are More Dangerous Than Obvious Ones

@@ -20,6 +20,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     # Additional utilities
     curl \
     ca-certificates \
+    git \
+    # Python + venv for WeasyPrint
+    python3 \
+    python3-pip \
+    python3-venv \
+    # WeasyPrint runtime dependencies (Pango/Cairo/GDK-Pixbuf)
+    libcairo2 \
+    libpango-1.0-0 \
+    libpangoft2-1.0-0 \
+    libpangocairo-1.0-0 \
+    libgdk-pixbuf-2.0-0 \
+    libffi-dev \
+    shared-mime-info \
     # Clean up
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
@@ -37,13 +50,21 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
 WORKDIR /app
 
 # Copy package files first for better caching
-COPY package.json bun.lockb* ./
+COPY package.json bun.lockb* requirements.txt ./
 
 # Install npm dependencies
 RUN bun install
 
+# Install Python dependencies (WeasyPrint) into a local venv
+RUN python3 -m venv /app/.venv \
+    && /app/.venv/bin/pip install --upgrade pip \
+    && /app/.venv/bin/pip install -r /app/requirements.txt
+
 # Copy application files
 COPY . .
+
+# Ensure venv binaries are available (weasyprint)
+ENV PATH="/app/.venv/bin:$PATH"
 
 # Create directories for input/output
 RUN mkdir -p /input /output /app/output

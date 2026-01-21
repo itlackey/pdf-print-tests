@@ -15,9 +15,30 @@ const ROOT = join(__dirname, "..");
 /**
  * Concatenate CSS files for PagedJS build
  * Order: variables -> base -> common -> engine-specific -> theme
+ * @param outputPath - Path to write concatenated CSS
+ * @param theme - Theme name (e.g., "kitchen-sink", "dark-theme") or "none" to skip base styles
  */
-function concatenateCSS(outputPath: string): string {
+function concatenateCSS(outputPath: string, theme: string = "kitchen-sink"): string {
   const stylesDir = join(ROOT, "styles");
+
+  // If theme is "none", only include engine-specific overrides
+  if (theme === "none") {
+    const cssFiles = [
+      join(stylesDir, "engines/pagedjs/overrides.css"),
+      join(stylesDir, "engines/pagedjs/features.css"),
+    ];
+    const concatenated = cssFiles
+      .filter((file) => existsSync(file))
+      .map((file) => {
+        const content = readFileSync(file, "utf-8");
+        return `/* Source: ${file.replace(ROOT, "")} */\n${content}\n`;
+      })
+      .join("\n");
+    writeFileSync(outputPath, concatenated, "utf-8");
+    console.log(`   📦 Using HTML-linked CSS + ${cssFiles.filter(f => existsSync(f)).length} engine overrides`);
+    return outputPath;
+  }
+
   const cssFiles = [
     // Variables first (CSS custom properties)
     join(stylesDir, "common/variables.css"),
@@ -32,7 +53,7 @@ function concatenateCSS(outputPath: string): string {
     join(stylesDir, "engines/pagedjs/overrides.css"),
     join(stylesDir, "engines/pagedjs/features.css"),
     // Theme
-    join(stylesDir, "themes/kitchen-sink.css"),
+    join(stylesDir, `themes/${theme}.css`),
   ];
 
   const concatenated = cssFiles
@@ -59,6 +80,8 @@ interface BuildOptions {
   heightMM?: number;
   /** Page size preset like "A4", "letter", or custom "6.25in x 9.25in" */
   pageSize?: string;
+  /** Theme name (e.g., "kitchen-sink", "dark-theme") or "none" to use HTML-linked CSS */
+  theme?: string;
 }
 
 export async function buildWithPagedJS(options: BuildOptions): Promise<{
@@ -68,7 +91,7 @@ export async function buildWithPagedJS(options: BuildOptions): Promise<{
   error?: string;
 }> {
   const startTime = performance.now();
-  const { input, output, timeout = 60000, additionalStyles, widthMM, heightMM, pageSize } = options;
+  const { input, output, timeout = 60000, additionalStyles, widthMM, heightMM, pageSize, theme = "kitchen-sink" } = options;
 
   // Ensure output directory exists
   const outputDir = dirname(output);
@@ -93,7 +116,7 @@ export async function buildWithPagedJS(options: BuildOptions): Promise<{
   try {
     // Concatenate CSS files for PagedJS
     const tempCSSPath = join(outputDir, "pagedjs-styles.css");
-    const concatenatedCSS = concatenateCSS(tempCSSPath);
+    const concatenatedCSS = concatenateCSS(tempCSSPath, theme);
 
     // Build pagedjs-cli command
     const args = [

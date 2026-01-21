@@ -11,12 +11,11 @@
   justify-content: center;
   align-items: center;
   text-align: center;
-  /* TAC-OPTIMIZED: Using bright blue to completely avoid Chromium's 4-plate black */
-  /* Chromium has been converting even medium blues to 4-plate black */
-  /* Using a much lighter, saturated blue (RGB ~140-200) to ensure proper CMYK */
-  /* See TAC-CHROMIUM-ISSUE-FINDINGS.md for full investigation details */
-  background: #4a7ba7; /* Bright steel blue: C60 M30 Y10 K0 = 100% TAC */
-  color: white;
+  /* TAC-COMPLIANT: Pure white background for Chromium-based engines
+     Any colored background produces 280%+ TAC in Chromium's PDF generation.
+     Must use pure white to pass DriveThruRPG's 240% TAC limit. */
+  background: white;
+  color: #333333;
 }
 
 .title-content {
@@ -84,16 +83,18 @@
 }
 
 .verification-note {
-  /* TAC-OPTIMIZED: Using bright blue to avoid Chromium's 4-plate black */
-  /* Bright steel blue: C60 M30 Y10 K0 = 100% TAC */
-  background: #4a7ba7;
-  color: white;
+  /* TAC-COMPLIANT: Using very light colors for Chromium compatibility
+     Dark colors produce 300-400% TAC in Chromium's PDF generation.
+     Light blue-gray background with dark text is TAC-safe. */
+  background: #d8e4f0;  /* Very light blue-gray: ~35% TAC */
+  color: #333333;  /* Dark gray text for readability */
   padding: 0.25in;
   border-radius: 3pt;
+  border: 2pt solid #a8c0d8;  /* Light blue border for visual definition */
 }
 
 .verification-note h3 {
-  color: white;
+  color: #2a4a6a;  /* Medium blue for headers - TAC safe */
   margin-bottom: 0.125in;
 }
 

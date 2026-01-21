@@ -1,6 +1,6 @@
 # PDF Print Tests: Comprehensive Project Knowledge
 
-**Last Updated:** 2026-01-20
+**Last Updated:** 2026-01-20 (Session: Dark Theme & CMYK Handling)
 **Status:** Production Ready
 
 ---
@@ -25,11 +25,14 @@
 
 ### Purpose
 
-This project is a **PDF/X-1a test harness** designed to evaluate and compare two CSS Paged Media rendering engines:
-- **PagedJS CLI** - Browser-based polyfill approach
-- **Vivliostyle CLI** - Native CSS Paged Media renderer
+This project is a **PDF/X-1a test harness** designed to evaluate and compare three CSS Paged Media rendering engines:
+- **PagedJS CLI** - Browser-based polyfill approach (Chromium)
+- **Vivliostyle CLI** - Native CSS Paged Media renderer (Chromium)
+- **WeasyPrint** - Python/Cairo-based renderer (non-Chromium)
 
 The primary goal is to determine which tool produces better print-ready PDFs for **DriveThruRPG** and other print-on-demand (POD) services.
+
+**Recommendation:** Use **WeasyPrint** for production of dark-themed documents, as it's the only engine that supports `device-cmyk()` for TAC-controlled colors.
 
 ### Key Objectives
 
@@ -204,7 +207,241 @@ vivliostyle build input.html \
 
 ---
 
-### 3. Ghostscript (PDF/X Conversion)
+### 3. WeasyPrint
+
+**Version Tested:** 68.0 (with tinycss2 v1.5.1)
+**Engine:** Cairo + Pango (non-Chromium)
+**Language:** Python
+
+#### How It Works
+
+1. Parses HTML using html5lib
+2. Processes CSS including CSS Color Level 4 (device-cmyk)
+3. Renders pages using Cairo graphics library
+4. Uses Pango for text layout
+5. Generates PDF directly (no browser needed)
+6. **v67+**: Can generate PDF/X and PDF/A variants natively
+
+#### Command Syntax
+
+```bash
+# Basic usage
+weasyprint input.html output.pdf \
+  --stylesheet additional.css \
+  --presentational-hints
+
+# DriveThruRPG recommended command (PDF/X-1a with all print options)
+weasyprint \
+  --base-url . \
+  --pdf-variant pdf/x-1a \
+  --dpi 300 \
+  --full-fonts \
+  input.html output.pdf
+
+# Alternative: PDF/X-3 (if X-1a causes issues)
+weasyprint --base-url . --pdf-variant pdf/x-3 --dpi 300 --full-fonts input.html output.pdf
+
+# Include sRGB color profile (optional)
+weasyprint --base-url . --pdf-variant pdf/x-1a --dpi 300 --full-fonts --srgb input.html output.pdf
+```
+
+#### Key Options
+
+| Flag | Purpose | Notes |
+|------|---------|-------|
+| `-s, --stylesheet` | Additional stylesheet | Can pass extra CSS file |
+| `-p, --presentational-hints` | Honor HTML presentational hints | `<center>`, `<font>`, etc. |
+| `-a, --attachment` | Add PDF attachments | Embed files |
+| `--pdf-variant` | PDF variant (v67+) | `pdf/x-1a`, `pdf/x-3`, `pdf/x-4`, `pdf/x-5g` |
+| `--base-url` | Base URL for relative paths | Use `.` for current directory |
+| `--dpi` | Max resolution for images | Use `300` for print quality |
+| `--full-fonts` | Embed complete fonts | Not subsetted (DriveThruRPG safe) |
+| `--srgb` | Include sRGB profile | Sets default for RGB colors |
+| `--pdf-version` | PDF version number | e.g., `1.4` |
+
+#### PDF/X Variants (v67+)
+
+| Variant | Description | Transparency | DriveThruRPG |
+|---------|-------------|--------------|--------------|
+| `pdf/x-1a` | Strictest, PDF 1.3 based | ❌ No | ✅ **Recommended** |
+| `pdf/x-3` | PDF 1.3, ICC profiles | ❌ No | ✅ Accepted |
+| `pdf/x-4` | PDF 1.6, ICC profiles | ✅ Yes | ❌ Not accepted |
+| `pdf/x-5g` | PDF 1.6, external profiles | ✅ Yes | ❌ Not accepted |
+
+**DriveThruRPG Requirement:** Use `pdf/x-1a` (most conservative) or `pdf/x-3`. PDF/X-4 is NOT accepted by DriveThruRPG despite being preferred for modern print workflows.
+
+#### Strengths
+
+- **Native PDF/X generation** (v67+): No Ghostscript needed for PDF/X compliance
+- **device-cmyk() support**: Only engine supporting CSS Color Level 4 CMYK colors
+- **@color-profile at-rule**: Full ICC profile support with rendering intents
+- **TAC control**: Can specify exact CMYK values for TAC compliance
+- **Non-Chromium**: Different rendering path, good for comparison
+- **PDF bookmarks**: Native support via `-weasy-bookmark-level`
+- **Smallest files**: Often produces smaller PDFs than Chromium engines
+- **PDF/A support**: Can generate archival PDFs (pdf/a-1a through pdf/a-4f)
+
+#### Weaknesses
+
+- **No device-cmyk() in gradients**: Crashes with NotImplementedError
+- **Different CSS support**: Some CSS features work differently than Chromium
+- **env() not supported**: Must use hardcoded values or string-set
+- **Flexbox limitations**: Limited flexbox support
+
+#### Critical device-cmyk() Behavior
+
+**Supported (v67+):**
+```css
+body {
+  background-color: device-cmyk(0.5 0.4 0.4 1); /* Works! */
+}
+```
+
+**NOT Supported (crashes):**
+```css
+.bg {
+  background: linear-gradient(180deg,
+    device-cmyk(0 0 0 1) 0%,
+    device-cmyk(0.5 0.4 0.4 1) 100%); /* CRASHES! */
+}
+```
+
+**Solution Pattern:**
+```css
+.bg {
+  /* RGB fallback for gradients */
+  background: linear-gradient(180deg, #1a1a1a 0%, #333333 100%);
+}
+body {
+  /* device-cmyk() for solid colors */
+  background-color: #555555; /* RGB fallback */
+  background-color: device-cmyk(0.5 0.4 0.4 1); /* TAC-safe */
+}
+```
+
+#### @color-profile CSS Rule (v67+)
+
+WeasyPrint supports the CSS `@color-profile` at-rule for custom ICC profiles:
+
+```css
+/* DriveThruRPG CMYK profile setup */
+@color-profile device-cmyk {
+  components: cyan, magenta, yellow, black;
+  src: url("assets/CGATS21_CRPC1.icc");
+}
+
+/* K-only body text (recommended for small type - safest for TAC) */
+body {
+  color: device-cmyk(0% 0% 0% 100%);
+}
+
+/* TAC-safe rich black for large dark areas */
+.dark-background {
+  background-color: device-cmyk(50% 40% 40% 100%); /* 230% TAC */
+}
+
+/* Or define a custom named profile */
+@color-profile --swop5c {
+  components: cyan, magenta, yellow, black;
+  src: url("SWOP2006_Coated5v2.icc");
+  rendering-intent: perceptual;
+}
+
+/* Use the custom profile in color() function */
+.accent {
+  color: color(--swop5c 100% 0% 100% 0%);
+}
+```
+
+**Rendering Intent Options:**
+
+| Value | Description | Use Case |
+|-------|-------------|----------|
+| `relative-colorimetric` | Preserves in-gamut colors, clips out-of-gamut | General print work |
+| `absolute-colorimetric` | Preserves exact colors relative to white | Proofing |
+| `perceptual` | Compresses gamut to fit destination | Photos, gradients |
+| `saturation` | Preserves relative saturation | Charts, graphics |
+
+**Recommended DriveThruRPG Setup:**
+```css
+@color-profile device-cmyk {
+  components: cyan, magenta, yellow, black;
+  src: url("assets/CGATS21_CRPC1.icc");
+}
+```
+
+#### TAC Management Best Practices
+
+| Technique | Description |
+|-----------|-------------|
+| **K-only text** | Use `device-cmyk(0% 0% 0% 100%)` for body text |
+| **Mostly-K backgrounds** | Avoid stacking heavy CMYK layers |
+| **Watch image overlays** | Dark images over dark backgrounds stack TAC fast |
+| **TAC-safe rich black** | `device-cmyk(50% 40% 40% 100%)` = 230% TAC |
+
+#### Version Requirements
+
+| Feature | Minimum Version |
+|---------|-----------------|
+| device-cmyk() colors | WeasyPrint 63+ |
+| device-cmyk() solid backgrounds | WeasyPrint 67+ |
+| @color-profile at-rule | WeasyPrint 67+ |
+| --pdf-variant option | WeasyPrint 67+ |
+| PDF/X-4 native generation | WeasyPrint 67+ |
+| device-cmyk() in gradients | **NOT SUPPORTED** |
+
+#### Installation
+
+```bash
+pip install --upgrade weasyprint tinycss2
+# Verify version
+weasyprint --version  # Should be 68.0+
+```
+
+#### Simplified DriveThruRPG Workflow (v67+)
+
+With WeasyPrint v67+, you can skip Ghostscript entirely:
+
+```bash
+# Generate DriveThruRPG-ready PDF directly (single command)
+weasyprint \
+  --base-url . \
+  --pdf-variant pdf/x-1a \
+  --dpi 300 \
+  --full-fonts \
+  book.html interior.pdf
+```
+
+This eliminates the two-step process (RGB PDF → Ghostscript → PDF/X) and preserves device-cmyk() colors without measurement artifacts.
+
+#### Common DriveThruRPG Failure Points
+
+| Issue | Cause | Solution |
+|-------|-------|----------|
+| **Page size wrong** | Bleed not included | Use trim + 0.25" height + 0.125" width |
+| **RGB in PDF** | CSS colors not converted | Use `device-cmyk()` + `@color-profile` |
+| **TAC > 240%** | Heavy overlays | Use K-only text, mostly-K backgrounds |
+| **Fonts not embedded** | Subsetting issue | Use `--full-fonts` flag |
+| **PDF/X compliance** | Wrong variant | Use `pdf/x-1a` (not pdf/x-4) |
+
+#### Page Size Bleed Math
+
+DriveThruRPG bleed is **0.125" on outside 3 edges**:
+- Final page = trim width + 0.125" × trim height + 0.25"
+- **6×9 trim** → **6.125" × 9.25"** final
+- **8.5×11 trim** → **8.625" × 11.25"** final
+
+```css
+@page {
+  /* 6x9 trade paperback with bleed */
+  size: 6.125in 9.25in;
+  margin: 0;
+}
+```
+
+---
+
+### 4. Ghostscript (PDF/X Conversion)
 
 **Version Required:** 9.55.0 or higher
 **Purpose:** RGB to CMYK + PDF/X-1a compliance
@@ -579,12 +816,16 @@ From 29-page kitchen sink test:
 
 | Use Case | Recommended Tool | Reason |
 |----------|------------------|--------|
-| **Simple layouts** | Either | Both work well |
+| **Simple layouts** | Any | All work well |
 | **Complex shapes/floats** | PagedJS | More accurate rendering |
-| **Large documents** | Vivliostyle | Smaller file sizes |
+| **Large documents** | WeasyPrint | Smallest file sizes |
 | **Font-heavy docs** | PagedJS | Better font embedding |
-| **Production print** | PagedJS | More consistent TAC |
+| **Dark themes/backgrounds** | WeasyPrint | Only engine supporting device-cmyk() |
+| **TAC-controlled CMYK** | WeasyPrint | Native device-cmyk() support |
+| **Production print (light)** | PagedJS | More consistent rendering |
+| **Production print (dark)** | WeasyPrint | TAC compliance via device-cmyk() |
 | **Quick proofs** | Vivliostyle | Faster PDF/X conversion |
+| **Documents needing backgrounds** | PagedJS or WeasyPrint | Vivliostyle doesn't render backgrounds |
 
 ---
 
@@ -927,6 +1168,68 @@ pagedjs-cli --browserArgs '--no-sandbox,--disable-setuid-sandbox'
   margin: var(--margin-top) 0.625in;  /* Variables OK here */
 }
 ```
+
+---
+
+### Issue 10: device-cmyk() Not Supported by Chromium Engines
+
+**Symptom:** Using `background-color: device-cmyk(0.5 0.4 0.4 1)` is ignored, default white background appears.
+
+**Root Cause:** Chromium-based engines (PagedJS, Vivliostyle) do not support CSS Color Level 4 `device-cmyk()` function.
+
+**Solution:**
+1. Use WeasyPrint v68+ for device-cmyk() support
+2. Provide RGB fallback for Chromium engines:
+   ```css
+   body {
+     background-color: #555555;                    /* Chromium fallback */
+     background-color: device-cmyk(0.5 0.4 0.4 1); /* WeasyPrint uses this */
+   }
+   ```
+
+---
+
+### Issue 11: WeasyPrint Crashes with device-cmyk() in Gradients
+
+**Symptom:** WeasyPrint throws `NotImplementedError` when processing gradients containing `device-cmyk()`.
+
+**Root Cause:** tinycss2 library cannot convert device-cmyk() to sRGB for gradient interpolation.
+
+**Solution:** Never use device-cmyk() in gradients. Use RGB colors instead:
+```css
+/* WRONG - crashes */
+background: linear-gradient(device-cmyk(0 0 0 1), device-cmyk(0.5 0.4 0.4 1));
+
+/* CORRECT */
+background: linear-gradient(#1a1a1a, #333333);
+```
+
+---
+
+### Issue 12: Vivliostyle Does Not Render Page/Body Backgrounds
+
+**Symptom:** Vivliostyle output shows very low TAC (~17%) while PagedJS/WeasyPrint show ~400% TAC for the same content.
+
+**Root Cause:** Vivliostyle CLI does not render backgrounds set on `@page` or `body` elements. This is a known limitation.
+
+**Impact:** Vivliostyle appears "TAC-compliant" but is actually missing content.
+
+**Solution:** Do not use Vivliostyle for documents with dark backgrounds. Use WeasyPrint for production.
+
+---
+
+### Issue 13: TAC Validation Reports 400% for device-cmyk() Content
+
+**Symptom:** TAC validation reports ~400% TAC even when using `device-cmyk(0.5 0.4 0.4 1)` which should be 230% TAC.
+
+**Root Cause:** Ghostscript's `inkcov` device converts ALL content through its RGB→CMYK pipeline during measurement, including device-cmyk() values.
+
+**Impact:** This is a **measurement artifact**, not a compliance failure. The PDF itself may contain correct CMYK values.
+
+**Solution:**
+1. For device-cmyk() PDFs, use Adobe Preflight to verify actual CMYK values
+2. Trust the mathematical TAC calculation: `device-cmyk(0.5 0.4 0.4 1)` = C:50 + M:40 + Y:40 + K:100 = 230% TAC
+3. Order proof prints to verify actual ink coverage
 
 ---
 

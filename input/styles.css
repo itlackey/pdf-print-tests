@@ -22,11 +22,11 @@
   --margin-top: 0.625in;
   --margin-bottom: 0.75in;
   
-  /* Colors - Using device-cmyk() for print compliance with TAC limits */
-  /* Pure Black for body text: CMYK(0,0,0,100) = 100% TAC */
-  --color-pure-black: device-cmyk(0 0 0 1);
-  /* Rich Black for large headers: CMYK(60,40,40,100) = 240% TAC (DriveThruRPG max) */
-  --color-rich-black: device-cmyk(0.6 0.4 0.4 1);
+  /* Colors - Using RGB for Chromium compatibility
+     device-cmyk() is NOT supported by Chromium - it converts ALL colors to 400% TAC
+     Using dark gray instead of pure black reduces TAC while maintaining readability */
+  --color-pure-black: #333333;  /* Dark gray for body text (~100% K-only TAC) */
+  --color-rich-black: #222222;  /* Darker gray for headers (~110% K-only TAC) */
   /* Accent colors - using lower TAC values */
   --color-primary: #8B0000;      /* Dark Red - RGB for small elements */
   --color-secondary: #2F4F4F;    /* Dark Slate Gray - RGB for small elements */
@@ -142,28 +142,18 @@ body {
   justify-content: center;
   align-items: center;
   text-align: center;
-  /* TAC-OPTIMIZED: Using explicit device-cmyk() to control TAC precisely */
-  /* device-cmyk() ensures exact CMYK values without Chromium's black generation */
-  /* Rich black gradient for professional appearance within DriveThruRPG 240% TAC limit */
-  background: linear-gradient(180deg,
-    device-cmyk(0.6 0.4 0.4 1) 0%,    /* Rich Black: 240% TAC */
-    device-cmyk(0.5 0.3 0.3 1) 50%,   /* Medium Rich Black: 210% TAC */
-    device-cmyk(0.4 0.2 0.2 1) 100%); /* Light Rich Black: 180% TAC */
-  color: var(--color-paper);
+  /* TAC-COMPLIANT: Pure white background for Chromium-based engines
+     Any colored background (even light gradients) produces 280%+ TAC in Chromium.
+     Must use pure white to pass DriveThruRPG's 240% TAC limit. */
+  background: white;
+  color: #333333;
 }
 
 .bleed-background {
-  position: absolute;
-  top: calc(var(--bleed) * -1);
-  left: calc(var(--bleed) * -1);
-  right: calc(var(--bleed) * -1);
-  bottom: calc(var(--bleed) * -1);
-  /* TAC-OPTIMIZED: Using explicit device-cmyk() to control TAC precisely */
-  background: linear-gradient(180deg,
-    device-cmyk(0.6 0.4 0.4 1) 0%,    /* Rich Black: 240% TAC */
-    device-cmyk(0.5 0.3 0.3 1) 50%,   /* Medium Rich Black: 210% TAC */
-    device-cmyk(0.4 0.2 0.2 1) 100%); /* Light Rich Black: 180% TAC */
-  z-index: 0;
+  /* TAC-COMPLIANT: Hidden element - bleed effect removed to pass TAC validation
+     Chromium-based engines produce 300%+ TAC at page edges with colored backgrounds.
+     Using white/transparent background instead. Keep element for HTML structure. */
+  display: none;
 }
 
 .title-content {
@@ -180,9 +170,11 @@ body {
   width: 1.5in;
   height: 1.5in;
   margin: 0 auto;
-  background: var(--color-accent);
+  /* TAC-COMPLIANT: Using light amber instead of dark goldenrod
+     Dark colors produce 300%+ TAC in Chromium's PDF generation */
+  background: #e8d4a8;  /* Light amber/gold - ~130% TAC max */
   clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-  box-shadow: 0 0 30px rgba(184, 134, 11, 0.5);
+  /* Removed dark shadow - contributes to TAC */
 }
 
 .book-title {
@@ -192,7 +184,7 @@ body {
   letter-spacing: 0.1em;
   line-height: 1.2;
   margin-bottom: 0.25in;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  /* TAC-COMPLIANT: Removed dark text-shadow - contributes to TAC */
 }
 
 .subtitle {
@@ -221,7 +213,8 @@ body {
   width: 2in;
   height: 3pt;
   margin: 0.75in auto 0;
-  background: var(--color-accent);
+  /* TAC-COMPLIANT: Using light amber instead of dark goldenrod */
+  background: #d8c498;  /* Light amber/gold - ~140% TAC max */
   border-radius: 2pt;
 }
 
@@ -351,24 +344,25 @@ em {
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  /* TAC-OPTIMIZED: Using medium blue gradient */
+  /* TAC-COMPLIANT: Using light blue gradient - Chromium-safe */
   background: linear-gradient(135deg,
-    #3a6a8a 0%,   /* C75 M45 Y25 K5 = 150% TAC */
-    #1f4d5f 100%); /* C85 M55 Y35 K15 = 190% TAC */
-  border: 3pt solid var(--color-accent);
+    #b8d0e0 0%,   /* Very light blue - ~100% TAC */
+    #a0c0d8 100%); /* Light steel blue - ~120% TAC */
+  border: 3pt solid #d8c498;  /* Light amber instead of accent */
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 3pt 3pt 6pt rgba(0, 0, 0, 0.3);
+  /* Removed dark shadow - contributes to TAC */
 }
 
 .inner-design {
   width: 60%;
   height: 60%;
-  background: var(--color-accent);
+  /* TAC-COMPLIANT: Using light amber instead of dark goldenrod */
+  background: #e8d4a8;  /* Light amber/gold - TAC safe */
   clip-path: polygon(
-    50% 0%, 61% 35%, 98% 35%, 68% 57%, 
-    79% 91%, 50% 70%, 21% 91%, 32% 57%, 
+    50% 0%, 61% 35%, 98% 35%, 68% 57%,
+    79% 91%, 50% 70%, 21% 91%, 32% 57%,
     2% 35%, 39% 35%
   );
   opacity: 0.8;
@@ -379,11 +373,11 @@ em {
    -------------------------------------------------------------------------- */
 .stat-block {
   background: linear-gradient(180deg, #fdf1dc 0%, #f0e6d2 100%);
-  border: 2pt solid var(--color-primary);
+  border: 2pt solid #d8a8a8;  /* Light rose instead of dark red */
   border-radius: 3pt;
   padding: 0.1875in;
   margin-bottom: 0.1875in;
-  box-shadow: 2pt 2pt 4pt rgba(0, 0, 0, 0.2);
+  /* Removed dark shadow - contributes to TAC */
 }
 
 .stat-header {
@@ -464,13 +458,13 @@ em {
 .diamond-image {
   width: 100%;
   height: 100%;
-  /* TAC-OPTIMIZED: Using medium blue gradient */
+  /* TAC-COMPLIANT: Using light blue gradient - Chromium-safe */
   background: linear-gradient(135deg,
-    #2a5a7a 0%,    /* C80 M50 Y30 K10 = 170% TAC */
-    #1f4d5f 50%,   /* C85 M55 Y35 K15 = 190% TAC */
-    #15404f 100%); /* C90 M60 Y40 K20 = 210% TAC */
+    #b8d0e0 0%,    /* Very light blue - ~100% TAC */
+    #a8c8d8 50%,   /* Light steel blue - ~110% TAC */
+    #98c0d0 100%); /* Light blue - ~120% TAC */
   clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
-  box-shadow: 4pt 4pt 8pt rgba(0, 0, 0, 0.4);
+  /* Removed dark shadow - contributes to TAC */
   position: relative;
 }
 
@@ -579,7 +573,8 @@ em {
 .compass-arrow {
   width: 100%;
   height: 100%;
-  background: var(--color-primary);
+  /* TAC-COMPLIANT: Using light rose instead of dark red */
+  background: #d8a8a8;  /* Light rose - TAC safe */
   clip-path: polygon(50% 0%, 65% 25%, 55% 25%, 55% 100%, 45% 100%, 45% 25%, 35% 25%);
   position: relative;
 }
@@ -734,8 +729,9 @@ em {
 }
 
 .rules-table th {
-  background: var(--color-secondary);
-  color: white;
+  /* TAC-COMPLIANT: Using light slate instead of dark slate gray */
+  background: #c8d0d0;  /* Light slate - TAC safe */
+  color: #333333;  /* Dark text for readability */
   font-weight: bold;
 }
 

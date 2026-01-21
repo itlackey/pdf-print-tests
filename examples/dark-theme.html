@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dark Theme Test - Dimm City Style</title>
+  <link rel="stylesheet" href="../styles/themes/dark-theme.css">
+</head>
+<body>
+  <!-- ============================================================
+       COVER PAGE - Full Bleed Dark Background
+       ============================================================ -->
+  <section class="page cover" data-page="cover">
+    <div class="cover-content">
+      <h1 class="cover-title">DARK THEME<br>TEST DOCUMENT</h1>
+      <p class="cover-subtitle">Advanced CSS Features for Print</p>
+      <div class="cover-badge">TAC-SAFE RICH BLACK</div>
+      <p class="cover-edition">PDF Print Tests &bull; v1.0</p>
+    </div>
+    <div class="cover-gradient"></div>
+  </section>
+
+  <!-- ============================================================
+       CREDITS PAGE
+       ============================================================ -->
+  <section class="page credits" data-page="credits">
+    <h1>Credits &amp; Acknowledgments</h1>
+
+    <div class="credits-block">
+      <h3>Design Inspiration</h3>
+      <p>Dimm City Field Guide by ITLackey &amp; TWard</p>
+    </div>
+
+    <div class="credits-block">
+      <h3>CSS Paged Media Testing</h3>
+      <p>PagedJS, Vivliostyle, WeasyPrint</p>
+    </div>
+
+    <div class="credits-block">
+      <h3>Print Compliance</h3>
+      <p>DriveThruRPG PDF/X-1a:2001</p>
+      <p>TAC Limit: 240% Maximum</p>
+    </div>
+
+    <div class="decorative-border"></div>
+  </section>
+
+  <!-- ============================================================
+       TABLE OF CONTENTS
+       ============================================================ -->
+  <section class="page toc" data-page="toc">
+    <h1>Table of Contents</h1>
+
+    <nav class="toc-list">
+      <div class="toc-section">
+        <h2>Chapter 1: Rich Black &amp; TAC</h2>
+        <ul>
+          <li><a href="#tac-basics" class="toc-entry">Understanding TAC</a></li>
+          <li><a href="#rich-black" class="toc-entry">Rich Black Formulas</a></li>
+          <li><a href="#color-safety" class="toc-entry">Color Safety Zones</a></li>
+        </ul>
+      </div>
+
+      <div class="toc-section">
+        <h2>Chapter 2: Advanced Layouts</h2>
+        <ul>
+          <li><a href="#multi-column" class="toc-entry">Multi-Column Text</a></li>
+          <li><a href="#shape-floats" class="toc-entry">Shape-Outside Floats</a></li>
+          <li><a href="#tables" class="toc-entry">Dark Theme Tables</a></li>
+        </ul>
+      </div>
+
+      <div class="toc-section">
+        <h2>Chapter 3: Components</h2>
+        <ul>
+          <li><a href="#stat-blocks" class="toc-entry">Stat Blocks</a></li>
+          <li><a href="#callouts" class="toc-entry">Callout Boxes</a></li>
+          <li><a href="#badges" class="toc-entry">District Badges</a></li>
+        </ul>
+      </div>
+    </nav>
+  </section>
+
+  <!-- ============================================================
+       CHAPTER 1: RICH BLACK & TAC
+       ============================================================ -->
+  <article id="chapter-01" data-chapter="Rich Black &amp; TAC">
+
+    <section class="page chapter-start" data-page="chapter-start">
+      <div class="chapter-header">
+        <span class="chapter-number">01</span>
+        <h1 class="chapter-title">Rich Black<br>&amp; TAC Control</h1>
+        <p class="chapter-intro">Understanding print-safe dark backgrounds for professional output</p>
+      </div>
+    </section>
+
+    <section class="page content" id="tac-basics">
+      <h2>Understanding Total Area Coverage</h2>
+
+      <p class="lead">TAC (Total Area Coverage) is the sum of all CMYK ink percentages at any point on a printed page. Print-on-demand services like DriveThruRPG require TAC to stay under 240%.</p>
+
+      <div class="two-column">
+        <div class="column">
+          <h3>Why TAC Matters</h3>
+          <p>When too much ink is applied to paper, several problems occur:</p>
+          <ul>
+            <li><strong>Ink bleed</strong> &mdash; colors run together</li>
+            <li><strong>Slow drying</strong> &mdash; smudging during handling</li>
+            <li><strong>Paper warping</strong> &mdash; excess moisture</li>
+            <li><strong>Rejection</strong> &mdash; POD services refuse the file</li>
+          </ul>
+        </div>
+
+        <div class="column">
+          <h3>TAC Calculation</h3>
+          <p>TAC is calculated by adding CMYK percentages:</p>
+          <div class="formula-box">
+            <code>TAC = C% + M% + Y% + K%</code>
+          </div>
+          <p>Pure black (#000000) in RGB converts to:</p>
+          <div class="formula-box danger">
+            <code>C=100 M=100 Y=100 K=100 = 400%</code>
+          </div>
+          <p class="warning-text">This is NEVER acceptable for print!</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="page content" id="rich-black">
+      <h2>Rich Black Formulas</h2>
+
+      <p>Rich black adds CMY to pure black (K) for deeper, more saturated blacks. The key is keeping TAC under 240%.</p>
+
+      <div class="color-samples">
+        <div class="color-sample pure-black">
+          <div class="color-swatch"></div>
+          <div class="color-info">
+            <h4>Pure Black</h4>
+            <code>K=100</code>
+            <span class="tac-value safe">TAC: 100%</span>
+            <p>Flat, grayish appearance</p>
+          </div>
+        </div>
+
+        <div class="color-sample rich-black-safe">
+          <div class="color-swatch"></div>
+          <div class="color-info">
+            <h4>Rich Black (Safe)</h4>
+            <code>C=50 M=40 Y=40 K=100</code>
+            <span class="tac-value safe">TAC: 230%</span>
+            <p>Deep, warm black - RECOMMENDED</p>
+          </div>
+        </div>
+
+        <div class="color-sample rich-black-bold">
+          <div class="color-swatch"></div>
+          <div class="color-info">
+            <h4>Rich Black (Maximum)</h4>
+            <code>C=60 M=40 Y=40 K=100</code>
+            <span class="tac-value warning">TAC: 240%</span>
+            <p>At the limit - use carefully</p>
+          </div>
+        </div>
+
+        <div class="color-sample rgb-black">
+          <div class="color-swatch"></div>
+          <div class="color-info">
+            <h4>RGB Black (Converted)</h4>
+            <code>C=100 M=100 Y=100 K=100</code>
+            <span class="tac-value danger">TAC: 400%</span>
+            <p>WILL BE REJECTED</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="page content" id="color-safety">
+      <h2>Color Safety Zones</h2>
+
+      <p>When designing for dark themes, be aware of how colors combine with dark backgrounds.</p>
+
+      <table class="dark-table">
+        <thead>
+          <tr>
+            <th>TAC Range</th>
+            <th>Status</th>
+            <th>Usage</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="status-pass">
+            <td>0-200%</td>
+            <td>PASS</td>
+            <td>All print services</td>
+            <td>Optimal range for reliability</td>
+          </tr>
+          <tr class="status-warning">
+            <td>200-240%</td>
+            <td>WARNING</td>
+            <td>Most POD services</td>
+            <td>DriveThruRPG maximum</td>
+          </tr>
+          <tr class="status-fail">
+            <td>240-300%</td>
+            <td>FAIL</td>
+            <td>Offset only</td>
+            <td>Rejected by most POD</td>
+          </tr>
+          <tr class="status-reject">
+            <td>300%+</td>
+            <td>REJECTED</td>
+            <td>None</td>
+            <td>Never acceptable</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout warning">
+        <h4>Important Note</h4>
+        <p>WeasyPrint handles <code>device-cmyk()</code> colors correctly, producing TAC-safe output. Chromium-based engines (PagedJS, Vivliostyle) convert all colors to RGB internally, which can result in 400% TAC when converted back to CMYK.</p>
+      </div>
+    </section>
+  </article>
+
+  <!-- ============================================================
+       CHAPTER 2: ADVANCED LAYOUTS
+       ============================================================ -->
+  <article id="chapter-02" data-chapter="Advanced Layouts">
+
+    <section class="page chapter-start" data-page="chapter-start">
+      <div class="chapter-header">
+        <span class="chapter-number">02</span>
+        <h1 class="chapter-title">Advanced<br>Layouts</h1>
+        <p class="chapter-intro">Multi-column text, shape floats, and complex tables</p>
+      </div>
+    </section>
+
+    <section class="page content" id="multi-column">
+      <h2>Multi-Column Text Layout</h2>
+
+      <div class="three-column">
+        <p>Multi-column layouts are essential for dense reference material. WeasyPrint has excellent support for CSS columns, including proper column balancing and break control.</p>
+
+        <p>The <code>column-count</code> property specifies the number of columns, while <code>column-gap</code> controls spacing between them. Column rules can add visual separation.</p>
+
+        <p>Use <code>break-inside: avoid</code> to prevent elements from splitting across columns. This is crucial for stat blocks, tables, and other components that should stay together.</p>
+
+        <p>Column spans allow elements to break out of the column layout. A heading with <code>column-span: all</code> will stretch across all columns, creating visual hierarchy.</p>
+
+        <p>For print media, columns provide better readability than full-width text, especially on larger page formats. The ideal line length is 45-75 characters.</p>
+
+        <p>WeasyPrint's column support is more reliable than Chromium-based engines, particularly for complex nested layouts and page breaks within columns.</p>
+      </div>
+
+      <h3 class="column-span">Spanning Header Example</h3>
+
+      <div class="two-column">
+        <p>This paragraph appears in a two-column layout. The heading above spans both columns using the <code>column-span: all</code> property. This technique is useful for section breaks within flowing content.</p>
+
+        <p>Notice how the columns balance automatically, distributing content evenly. This behavior can be controlled with <code>column-fill: balance</code> or <code>column-fill: auto</code>.</p>
+      </div>
+    </section>
+
+    <section class="page content" id="shape-floats">
+      <h2>Shape-Outside Floats</h2>
+
+      <div class="float-demo">
+        <div class="shape-circle float-left">
+          <div class="shape-content">
+            <span class="shape-label">CIRCLE</span>
+          </div>
+        </div>
+
+        <p>The <code>shape-outside</code> CSS property allows text to wrap around non-rectangular shapes. This circle uses <code>shape-outside: circle(50%)</code> to create a circular flow area.</p>
+
+        <p>Shape floats are particularly useful for game books, magazines, and other publications where images and decorative elements should integrate naturally with body text.</p>
+
+        <p>WeasyPrint supports <code>shape-outside</code> with <code>circle()</code>, <code>ellipse()</code>, <code>polygon()</code>, and <code>inset()</code> functions. It also supports <code>shape-margin</code> for adding padding around the shape.</p>
+      </div>
+
+      <div class="float-demo clearfix">
+        <div class="shape-diamond float-right">
+          <div class="shape-content">
+            <span class="shape-label">DIAMOND</span>
+          </div>
+        </div>
+
+        <p>This diamond shape uses <code>shape-outside: polygon()</code> with four points defining the vertices. The polygon function accepts any number of coordinate pairs.</p>
+
+        <p>Shape coordinates can be specified in percentages, pixels, or any CSS length unit. Percentages are relative to the element's reference box.</p>
+
+        <p>For complex shapes like character silhouettes, you can use <code>shape-outside: url(image.png)</code> to derive the shape from an image's alpha channel.</p>
+      </div>
+    </section>
+
+    <section class="page content" id="tables">
+      <h2>Dark Theme Tables</h2>
+
+      <p>Tables in dark themes require careful color management to maintain readability while keeping TAC in check.</p>
+
+      <table class="dark-table striped">
+        <thead>
+          <tr>
+            <th>Attribute</th>
+            <th>Base</th>
+            <th>Modifier</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Strength</td>
+            <td>14</td>
+            <td>+2</td>
+            <td class="highlight">16</td>
+          </tr>
+          <tr>
+            <td>Dexterity</td>
+            <td>12</td>
+            <td>+1</td>
+            <td class="highlight">13</td>
+          </tr>
+          <tr>
+            <td>Constitution</td>
+            <td>15</td>
+            <td>+0</td>
+            <td class="highlight">15</td>
+          </tr>
+          <tr>
+            <td>Intelligence</td>
+            <td>10</td>
+            <td>+3</td>
+            <td class="highlight">13</td>
+          </tr>
+          <tr>
+            <td>Wisdom</td>
+            <td>8</td>
+            <td>+1</td>
+            <td class="highlight">9</td>
+          </tr>
+          <tr>
+            <td>Charisma</td>
+            <td>16</td>
+            <td>+0</td>
+            <td class="highlight">16</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Table Styling Tips</h3>
+      <ul class="tips-list">
+        <li>Use semi-transparent backgrounds for stripe rows</li>
+        <li>Keep header backgrounds below 230% TAC</li>
+        <li>Use bright accent colors sparingly for highlights</li>
+        <li>Ensure text contrast ratio meets accessibility standards</li>
+      </ul>
+    </section>
+  </article>
+
+  <!-- ============================================================
+       CHAPTER 3: COMPONENTS
+       ============================================================ -->
+  <article id="chapter-03" data-chapter="Components">
+
+    <section class="page chapter-start" data-page="chapter-start">
+      <div class="chapter-header">
+        <span class="chapter-number">03</span>
+        <h1 class="chapter-title">Component<br>Library</h1>
+        <p class="chapter-intro">Stat blocks, callouts, badges, and more</p>
+      </div>
+    </section>
+
+    <section class="page content" id="stat-blocks">
+      <h2>Stat Blocks</h2>
+
+      <div class="stat-block">
+        <div class="stat-header">
+          <h3>STREET WARDEN</h3>
+          <span class="stat-type">Specialty &bull; Tier 2</span>
+        </div>
+        <div class="stat-body">
+          <div class="stat-row">
+            <span class="stat-label">Role:</span>
+            <span class="stat-value">Enforcer / Protector</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">District:</span>
+            <span class="stat-value district-badge techd">Tech District</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-abilities">
+            <h4>Abilities</h4>
+            <ul>
+              <li><strong>Shield Wall:</strong> +2 to defense when protecting allies</li>
+              <li><strong>Street Justice:</strong> Advantage on intimidation in home district</li>
+              <li><strong>Iron Will:</strong> Resistance to fear and mind control</li>
+            </ul>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-quote">
+            <em>"The street doesn't care who you were. Only who you are now."</em>
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-block compact">
+        <div class="stat-header">
+          <h3>PULSE CANNON</h3>
+          <span class="stat-type">Weapon &bull; Ranged</span>
+        </div>
+        <div class="stat-body">
+          <div class="stat-grid">
+            <div class="stat-cell">
+              <span class="stat-label">Damage</span>
+              <span class="stat-value">2d8</span>
+            </div>
+            <div class="stat-cell">
+              <span class="stat-label">Range</span>
+              <span class="stat-value">60ft</span>
+            </div>
+            <div class="stat-cell">
+              <span class="stat-label">Ammo</span>
+              <span class="stat-value">12</span>
+            </div>
+            <div class="stat-cell">
+              <span class="stat-label">Weight</span>
+              <span class="stat-value">8 lbs</span>
+            </div>
+          </div>
+          <p class="stat-description">Energy weapon that fires concentrated plasma bursts. Requires power cell.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="page content" id="callouts">
+      <h2>Callout Boxes</h2>
+
+      <div class="callout note">
+        <h4>Note</h4>
+        <p>This is a note callout for general information that players should be aware of but isn't critical to gameplay.</p>
+      </div>
+
+      <div class="callout tip">
+        <h4>Pro Tip</h4>
+        <p>Tips provide helpful suggestions for both players and game masters. Use these to share best practices.</p>
+      </div>
+
+      <div class="callout warning">
+        <h4>Warning</h4>
+        <p>Warnings highlight potential pitfalls, dangerous situations, or important rules that are often overlooked.</p>
+      </div>
+
+      <div class="callout danger">
+        <h4>Danger</h4>
+        <p>Danger callouts mark critical information that could result in character death or campaign-altering consequences.</p>
+      </div>
+
+      <div class="callout lore">
+        <h4>Lore Fragment</h4>
+        <p><em>"The Founders built the city in a single night, or so the legends say. But nights in Dimm City can last a thousand years..."</em></p>
+      </div>
+    </section>
+
+    <section class="page content" id="badges">
+      <h2>District Badges</h2>
+
+      <p>Districts are identified by color-coded badges. Each badge uses gradients optimized for print.</p>
+
+      <div class="badge-showcase">
+        <div class="badge-item">
+          <span class="district-badge techd">Tech District</span>
+          <p>Innovation hub, corporations</p>
+        </div>
+        <div class="badge-item">
+          <span class="district-badge entd">Entertainment</span>
+          <p>Nightlife, pleasure dens</p>
+        </div>
+        <div class="badge-item">
+          <span class="district-badge commd">Commerce</span>
+          <p>Markets, trading posts</p>
+        </div>
+        <div class="badge-item">
+          <span class="district-badge arcd">Archive</span>
+          <p>Libraries, data vaults</p>
+        </div>
+        <div class="badge-item">
+          <span class="district-badge marketd">Market</span>
+          <p>Black markets, fences</p>
+        </div>
+        <div class="badge-item">
+          <span class="district-badge dark">The Dark</span>
+          <p>Forgotten zones, outcasts</p>
+        </div>
+      </div>
+
+      <h3>Footnotes Test</h3>
+      <p>WeasyPrint supports CSS footnotes<span class="footnote">This is a footnote demonstrating WeasyPrint's footnote feature.</span> using the <code>float: footnote</code> property. Footnotes automatically collect at the bottom of the page<span class="footnote">Multiple footnotes are numbered sequentially and placed in order at the page bottom.</span>.</p>
+    </section>
+
+    <!-- ============================================================
+         BACK COVER
+         ============================================================ -->
+    <section class="page back-cover" data-page="back-cover">
+      <div class="back-cover-content">
+        <h2>Dark Theme Test Document</h2>
+        <p>This document demonstrates advanced CSS features for print-ready PDFs with dark backgrounds.</p>
+
+        <div class="feature-list">
+          <h3>Features Tested</h3>
+          <ul>
+            <li>TAC-safe rich black using device-cmyk()</li>
+            <li>Multi-column layouts with column-span</li>
+            <li>Shape-outside floats (circle, polygon)</li>
+            <li>Dark theme tables with stripe rows</li>
+            <li>Stat blocks and component styling</li>
+            <li>Callout boxes with semantic colors</li>
+            <li>CSS footnotes (WeasyPrint)</li>
+            <li>Chapter counters and page numbers</li>
+          </ul>
+        </div>
+
+        <div class="back-cover-footer">
+          <p class="tagline">Built for DriveThruRPG Compliance</p>
+          <p class="credits">PDF Print Tests &bull; 2024</p>
+        </div>
+      </div>
+    </section>
+  </article>
+</body>
+</html>

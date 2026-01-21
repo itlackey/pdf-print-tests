@@ -13,7 +13,10 @@
     "batch": "bun run scripts/batch-process.ts",
     "test": "bun run scripts/run-all.ts",
     "test:kitchen-sink": "bun run scripts/batch-process.ts --input examples --output output/kitchen-sink --html kitchen-sink.html",
-    "clean": "rm -rf output/*"
+    "test:dark-theme": "bun run scripts/batch-process.ts --input examples --output output/dark-theme --html dark-theme.html --theme none",
+    "clean": "rm -rf output/*",
+    "docker:pip-install": "make docker-pip-install",
+    "compose:pip-install": "make compose-pip-install"
   },
   "dependencies": {
     "pagedjs-cli": "^0.4.3",

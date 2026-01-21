@@ -1,7 +1,7 @@
 # PDFX Test Harness - Makefile
 # Convenience commands for building and running the test harness
 
-.PHONY: all build run clean docker-build docker-run docker-shell help kitchen-sink
+.PHONY: all build run clean docker-build docker-run docker-shell help kitchen-sink docker-pip-install compose-pip-install
 
 # Default target
 all: help
@@ -41,6 +41,15 @@ docker-shell: docker-build
 		--entrypoint /bin/bash \
 		pdfx-test-harness
 
+# Install/refresh Python deps (WeasyPrint) inside the Docker image build
+# Note: this runs during `docker build` (cached unless requirements.txt changes).
+docker-pip-install: docker-build
+	@echo "Installing Python requirements inside Docker image..."
+	docker run --rm \
+		--entrypoint /bin/bash \
+		pdfx-test-harness \
+		-lc "/app/.venv/bin/pip install -r /app/requirements.txt && /app/.venv/bin/weasyprint --version"
+
 # Docker Compose commands
 compose-up:
 	docker compose up
@@ -50,6 +59,13 @@ compose-down:
 
 compose-shell:
 	docker compose run --rm shell
+
+compose-pip-install:
+	@echo "Installing Python requirements via docker compose..."
+	docker compose run --rm \
+		--entrypoint /bin/bash \
+		pdfx \
+		-lc "/app/.venv/bin/pip install -r /app/requirements.txt && /app/.venv/bin/weasyprint --version"
 
 # Local commands (requires bun and system dependencies)
 install:

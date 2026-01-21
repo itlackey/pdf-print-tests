@@ -1,0 +1,67 @@
+/* ==========================================================================
+   WEASYPRINT CMYK COLOR PROFILE
+   Defines the ICC profile for DriveThruRPG print compliance
+
+   This uses CSS Color Level 4 @color-profile to embed the CGATS21_CRPC1
+   ICC profile, which enforces CMYK color space and 240% TAC limit.
+
+   Reference: https://doc.courtbouillon.org/weasyprint/stable/common_use_cases.html
+   ========================================================================== */
+
+/**
+ * Define the device-cmyk color profile using DriveThruRPG's recommended ICC.
+ * This profile has a 240% TAC (Total Area Coverage) limit built-in.
+ */
+@color-profile device-cmyk {
+  components: cyan, magenta, yellow, black;
+  /* ICC profile is copied to output directory by build script */
+  src: url("CGATS21_CRPC1.icc");
+}
+
+/* ==========================================================================
+   CMYK Color Utilities
+   Use these classes or device-cmyk() directly for print-safe colors
+   ========================================================================== */
+
+/* Pure black (K-only) - recommended for body text */
+.cmyk-black {
+  color: device-cmyk(0% 0% 0% 100%);
+}
+
+/* Rich black - use sparingly for large areas */
+.cmyk-rich-black {
+  color: device-cmyk(40% 40% 40% 100%);
+}
+
+/* Pure white - safe for print */
+.cmyk-white {
+  color: device-cmyk(0% 0% 0% 0%);
+}
+
+/* Primary colors - TAC-safe values */
+.cmyk-cyan {
+  color: device-cmyk(100% 0% 0% 0%);
+}
+
+.cmyk-magenta {
+  color: device-cmyk(0% 100% 0% 0%);
+}
+
+.cmyk-yellow {
+  color: device-cmyk(0% 0% 100% 0%);
+}
+
+/* ==========================================================================
+   Default text handling
+   Override default colors to use K-only for text (print best practice)
+   ========================================================================== */
+
+/* Body text should use K-only black for sharpest printing */
+body {
+  color: device-cmyk(0% 0% 0% 100%);
+}
+
+/* Headings can use slightly richer black if desired */
+h1, h2, h3, h4, h5, h6 {
+  color: device-cmyk(0% 0% 0% 100%);
+}

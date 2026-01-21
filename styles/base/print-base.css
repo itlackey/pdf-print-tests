@@ -65,7 +65,10 @@
 
 /* Named pages */
 @page title {
-  margin: 0;
+  /* TAC-COMPLIANT: Larger margin prevents Chromium's page-edge high TAC issue
+     Full-bleed (margin: 0) causes 100% CMY at page edges = 300%+ TAC
+     A 0.25in margin reduces TAC significantly while keeping reasonable appearance */
+  margin: 0.25in;
   @top-left { content: none; }
   @top-right { content: none; }
   @bottom-center { content: none; }

@@ -15,9 +15,30 @@ const ROOT = join(__dirname, "..");
 /**
  * Concatenate CSS files for Vivliostyle build
  * Order: variables -> base -> common -> engine-specific -> theme
+ * @param outputPath - Path to write concatenated CSS
+ * @param theme - Theme name (e.g., "kitchen-sink", "dark-theme") or "none" to skip base styles
  */
-function concatenateCSS(outputPath: string): string {
+function concatenateCSS(outputPath: string, theme: string = "kitchen-sink"): string {
   const stylesDir = join(ROOT, "styles");
+
+  // If theme is "none", only include engine-specific overrides
+  if (theme === "none") {
+    const cssFiles = [
+      join(stylesDir, "engines/vivliostyle/overrides.css"),
+      join(stylesDir, "engines/vivliostyle/features.css"),
+    ];
+    const concatenated = cssFiles
+      .filter((file) => existsSync(file))
+      .map((file) => {
+        const content = readFileSync(file, "utf-8");
+        return `/* Source: ${file.replace(ROOT, "")} */\n${content}\n`;
+      })
+      .join("\n");
+    writeFileSync(outputPath, concatenated, "utf-8");
+    console.log(`   📦 Using HTML-linked CSS + ${cssFiles.filter(f => existsSync(f)).length} engine overrides`);
+    return outputPath;
+  }
+
   const cssFiles = [
     // Variables first (CSS custom properties)
     join(stylesDir, "common/variables.css"),
@@ -32,7 +53,7 @@ function concatenateCSS(outputPath: string): string {
     join(stylesDir, "engines/vivliostyle/overrides.css"),
     join(stylesDir, "engines/vivliostyle/features.css"),
     // Theme
-    join(stylesDir, "themes/kitchen-sink.css"),
+    join(stylesDir, `themes/${theme}.css`),
   ];
 
   const concatenated = cssFiles
@@ -54,13 +75,16 @@ interface BuildOptions {
   timeout?: number;
   /** Page size like "A4", "letter", or custom "6.25in,9.25in" */
   size?: string;
-  theme?: string;
+  /** Additional theme/stylesheet to apply (Vivliostyle --theme option) */
+  additionalTheme?: string;
   /** Enable press-ready PDF/X-1a mode */
   press?: boolean;
   /** Print crop marks */
   cropMarks?: boolean;
   /** Bleed area size (e.g., "3mm", "0.125in") */
   bleed?: string;
+  /** Theme name (e.g., "kitchen-sink", "dark-theme") or "none" to use HTML-linked CSS */
+  theme?: string;
 }
 
 export async function buildWithVivliostyle(options: BuildOptions): Promise<{
@@ -70,7 +94,7 @@ export async function buildWithVivliostyle(options: BuildOptions): Promise<{
   error?: string;
 }> {
   const startTime = performance.now();
-  const { input, output, timeout = 120000, size, theme, press = false, cropMarks = false, bleed } = options;
+  const { input, output, timeout = 120000, size, additionalTheme, press = false, cropMarks = false, bleed, theme = "kitchen-sink" } = options;
 
   // Ensure output directory exists
   const outputDir = dirname(output);
@@ -95,7 +119,7 @@ export async function buildWithVivliostyle(options: BuildOptions): Promise<{
   try {
     // Concatenate CSS files for Vivliostyle
     const tempCSSPath = join(outputDir, "vivliostyle-styles.css");
-    const concatenatedCSS = concatenateCSS(tempCSSPath);
+    const concatenatedCSS = concatenateCSS(tempCSSPath, theme);
 
     // Build vivliostyle command
     const args = [
@@ -120,8 +144,8 @@ export async function buildWithVivliostyle(options: BuildOptions): Promise<{
     args.push("--theme", concatenatedCSS);
 
     // Add additional theme/stylesheet if specified
-    if (theme) {
-      args.push("--theme", theme);
+    if (additionalTheme) {
+      args.push("--theme", additionalTheme);
     }
 
     // Press-ready mode for print

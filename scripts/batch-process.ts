@@ -17,6 +17,7 @@ import { convertToPdfx } from "./convert-pdfx.ts";
 import { runComparisonInDir } from "./compare-pdfs.ts";
 import { validatePdf } from "./validate-pdfs.ts";
 import { validateTAC, type TACValidationResult } from "./validate-tac.ts";
+import { limitTAC } from "./limit-tac.ts";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const APP_ROOT = join(__dirname, "..");
@@ -48,6 +49,8 @@ interface BatchOptions {
   skipConvert: boolean;
   skipCompare: boolean;
   strictCompliance?: boolean; // Fail if PDFs are not compliant
+  /** Theme name for CSS concatenation (e.g., "kitchen-sink", "dark-theme") or "none" to use HTML-linked CSS */
+  theme?: string;
 }
 
 function parseArgs(): BatchOptions {
@@ -68,6 +71,7 @@ function parseArgs(): BatchOptions {
     skipConvert: false,
     skipCompare: false,
     strictCompliance: false,
+    theme: "kitchen-sink", // Default theme
   };
 
   for (let i = 0; i < args.length; i++) {
@@ -104,6 +108,10 @@ function parseArgs(): BatchOptions {
         break;
       case "--strict":
         options.strictCompliance = true;
+        break;
+      case "--theme":
+        options.theme = nextArg;
+        i++;
         break;
     }
   }
@@ -177,6 +185,7 @@ async function processBatch(options: BatchOptions): Promise<{
         input: actualHtmlPath,
         output: join(outputDir, "pagedjs-output.pdf"),
         timeout: 120000,
+        theme: options.theme,
         // Let CSS @page size rule control page dimensions
         // PagedJS's -w/-h options don't work as expected with CSS-defined sizes
       });
@@ -200,6 +209,7 @@ async function processBatch(options: BatchOptions): Promise<{
         input: actualHtmlPath,
         output: join(outputDir, "vivliostyle-output.pdf"),
         timeout: 120000,
+        theme: options.theme,
         // Pass explicit page size for consistent output
         size: TARGET_PAGE.vivliostyleSize,
         // Note: We don't use press-ready here as we do our own PDF/X conversion
@@ -214,22 +224,48 @@ async function processBatch(options: BatchOptions): Promise<{
     }
   }
 
-  // Step 2.5: Build with WeasyPrint
+  // Step 2.5: Build with WeasyPrint (with direct PDF/X-1a output)
+  // WeasyPrint 68+ supports native PDF/X output, skipping Ghostscript conversion
   if (!options.skipWeasyPrint) {
     console.log(`\n${"─".repeat(40)}`);
     console.log(`Building with WeasyPrint`);
     console.log(`${"─".repeat(40)}`);
 
     try {
+      // Build standard PDF first for comparison
       const wpResult = await buildWithWeasyPrint({
         input: actualHtmlPath,
         output: join(outputDir, "weasyprint-output.pdf"),
         timeout: 120000,
         mediaType: "print",
+        theme: options.theme,
       });
       result.weasyprint.build = wpResult.success;
       if (!wpResult.success && wpResult.error) {
         result.errors.push(`WeasyPrint build: ${wpResult.error}`);
+      }
+
+      // If standard build succeeded and we're not skipping conversion,
+      // build PDF/X-3 directly using WeasyPrint 68's native support
+      // Note: PDF/X-1a converts fonts to outlines, PDF/X-3 preserves embedded fonts
+      // This uses the CGATS21_CRPC1.icc profile via CSS @color-profile
+      if (wpResult.success && !options.skipConvert) {
+        console.log(`\n📄 Building PDF/X-3 directly with WeasyPrint (with CMYK color profile)...`);
+        const wpPdfxResult = await buildWithWeasyPrint({
+          input: actualHtmlPath,
+          output: join(outputDir, "weasyprint-pdfx.pdf"),
+          timeout: 120000,
+          mediaType: "print",
+          theme: options.theme,
+          pdfVariant: "pdf/x-3", // PDF/X-3 preserves fonts (X-1a converts to outlines)
+          optimizeImages: true,
+          dpi: 300, // Print-quality DPI
+          fullFonts: true, // Embed full fonts (required for print)
+        });
+        result.weasyprint.convert = wpPdfxResult.success;
+        if (!wpPdfxResult.success && wpPdfxResult.error) {
+          result.errors.push(`WeasyPrint PDF/X: ${wpPdfxResult.error}`);
+        }
       }
     } catch (e) {
       result.errors.push(`WeasyPrint build exception: ${e}`);
@@ -278,25 +314,124 @@ async function processBatch(options: BatchOptions): Promise<{
       }
     }
 
-    // Convert WeasyPrint output
-    const wpPdf = join(outputDir, "weasyprint-output.pdf");
-    if (existsSync(wpPdf)) {
+    // Skip Ghostscript conversion for WeasyPrint - it produces PDF/X directly in Step 2.5
+    // WeasyPrint 68+ uses native PDF/X-1a output with @color-profile for CMYK
+    // The weasyprint-pdfx.pdf is already created with proper color profile
+    const wpPdfx = join(outputDir, "weasyprint-pdfx.pdf");
+    if (!existsSync(wpPdfx)) {
+      // Fallback: convert with Ghostscript if direct PDF/X wasn't created
+      const wpPdf = join(outputDir, "weasyprint-output.pdf");
+      if (existsSync(wpPdf)) {
+        console.log(`   ⚠️  Falling back to Ghostscript conversion for WeasyPrint...`);
+        try {
+          const wpConvert = await convertToPdfx({
+            input: wpPdf,
+            output: join(outputDir, "weasyprint-pdfx.pdf"),
+            title: `WeasyPrint - ${basename(inputDir)}`,
+          });
+          result.weasyprint.convert = wpConvert.success;
+          if (!wpConvert.success && wpConvert.error) {
+            result.errors.push(`WeasyPrint convert: ${wpConvert.error}`);
+          }
+        } catch (e) {
+          result.errors.push(`WeasyPrint convert exception: ${e}`);
+        }
+      }
+    } else {
+      console.log(`   ✅ WeasyPrint PDF/X-1a already created directly (skipping Ghostscript)`);
+    }
+
+    // Step 3.5: Apply TAC Limiting to PDF/X outputs
+    // This uses a TIFF pipeline with device-link ICC profiles to enforce 240% TAC
+    console.log(`\n${"─".repeat(40)}`);
+    console.log(`Applying TAC Limiting (240% max)`);
+    console.log(`${"─".repeat(40)}`);
+
+    // Limit TAC on PagedJS PDF/X
+    const pjPdfxForTac = join(outputDir, "pagedjs-pdfx.pdf");
+    if (existsSync(pjPdfxForTac)) {
       try {
-        const wpConvert = await convertToPdfx({
-          input: wpPdf,
-          output: join(outputDir, "weasyprint-pdfx.pdf"),
-          title: `WeasyPrint - ${basename(inputDir)}`,
+        console.log(`\n🔧 Limiting TAC for PagedJS...`);
+        const tacLimitResult = await limitTAC({
+          input: pjPdfxForTac,
+          output: join(outputDir, "pagedjs-pdfx-tac240.pdf"),
+          maxTAC: 240,
+          dpi: 150, // Lower DPI for faster processing during testing
+          verify: true,
         });
-        result.weasyprint.convert = wpConvert.success;
-        if (!wpConvert.success && wpConvert.error) {
-          result.errors.push(`WeasyPrint convert: ${wpConvert.error}`);
+        if (tacLimitResult.success) {
+          // Replace the original with the TAC-limited version
+          copyFileSync(join(outputDir, "pagedjs-pdfx-tac240.pdf"), pjPdfxForTac);
+          console.log(`   ✅ TAC limited: ${tacLimitResult.beforeTAC}% → ${tacLimitResult.afterTAC}%`);
+        } else {
+          console.log(`   ⚠️  TAC limiting failed: ${tacLimitResult.error}`);
         }
       } catch (e) {
-        result.errors.push(`WeasyPrint convert exception: ${e}`);
+        console.log(`   ⚠️  TAC limiting skipped: ${e}`);
       }
     }
 
-    // Step 3.5: Validate TAC (Total Area Coverage)
+    // Limit TAC on Vivliostyle PDF/X
+    const vsPdfxForTac = join(outputDir, "vivliostyle-pdfx.pdf");
+    if (existsSync(vsPdfxForTac)) {
+      try {
+        console.log(`\n🔧 Limiting TAC for Vivliostyle...`);
+        const tacLimitResult = await limitTAC({
+          input: vsPdfxForTac,
+          output: join(outputDir, "vivliostyle-pdfx-tac240.pdf"),
+          maxTAC: 240,
+          dpi: 150,
+          verify: true,
+        });
+        if (tacLimitResult.success) {
+          // Replace the original with the TAC-limited version
+          copyFileSync(join(outputDir, "vivliostyle-pdfx-tac240.pdf"), vsPdfxForTac);
+          console.log(`   ✅ TAC limited: ${tacLimitResult.beforeTAC}% → ${tacLimitResult.afterTAC}%`);
+        } else {
+          console.log(`   ⚠️  TAC limiting failed: ${tacLimitResult.error}`);
+        }
+      } catch (e) {
+        console.log(`   ⚠️  TAC limiting skipped: ${e}`);
+      }
+    }
+
+    // Limit TAC on WeasyPrint PDF/X only if needed
+    // WeasyPrint with PDF/X-3 and CMYK color profile usually passes TAC already
+    // IMPORTANT: TAC limiting rasterizes the PDF, destroying embedded fonts!
+    // Only apply if TAC exceeds the limit.
+    const wpPdfxForTac = join(outputDir, "weasyprint-pdfx.pdf");
+    if (existsSync(wpPdfxForTac)) {
+      try {
+        console.log(`\n🔧 Checking TAC for WeasyPrint...`);
+        // First check if TAC limiting is even needed
+        const wpTacCheck = await validateTAC(wpPdfxForTac);
+        if (wpTacCheck.maxTAC <= 240) {
+          console.log(`   ✅ TAC already compliant (${wpTacCheck.maxTAC.toFixed(1)}%) - skipping TAC limiting to preserve fonts`);
+          // Copy the original as the "tac240" version since it's already compliant
+          copyFileSync(wpPdfxForTac, join(outputDir, "weasyprint-pdfx-tac240.pdf"));
+        } else {
+          console.log(`   ⚠️  TAC ${wpTacCheck.maxTAC.toFixed(1)}% exceeds 240% - applying TAC limiting (will rasterize)`);
+          const tacLimitResult = await limitTAC({
+            input: wpPdfxForTac,
+            output: join(outputDir, "weasyprint-pdfx-tac240.pdf"),
+            maxTAC: 240,
+            dpi: 150,
+            verify: true,
+          });
+          if (tacLimitResult.success) {
+            // Replace the original with the TAC-limited version (fonts will be lost)
+            copyFileSync(join(outputDir, "weasyprint-pdfx-tac240.pdf"), wpPdfxForTac);
+            console.log(`   ✅ TAC limited: ${tacLimitResult.beforeTAC}% → ${tacLimitResult.afterTAC}%`);
+          } else {
+            console.log(`   ⚠️  TAC limiting failed: ${tacLimitResult.error}`);
+          }
+        }
+      } catch (e) {
+        console.log(`   ⚠️  TAC limiting skipped: ${e}`);
+      }
+    }
+
+    // Step 3.6: Validate TAC (Total Area Coverage)
     console.log(`\n${"─".repeat(40)}`);
     console.log(`Validating TAC (Total Area Coverage)`);
     console.log(`${"─".repeat(40)}`);
@@ -358,11 +493,11 @@ async function processBatch(options: BatchOptions): Promise<{
     }
 
     // Validate WeasyPrint PDF/X output
-    const wpPdfx = join(outputDir, "weasyprint-pdfx.pdf");
-    if (existsSync(wpPdfx)) {
+    const wpPdfxPath = join(outputDir, "weasyprint-pdfx.pdf");
+    if (existsSync(wpPdfxPath)) {
       try {
         console.log(`\n🔍 Checking WeasyPrint PDF/X...`);
-        const tacResult = await validateTAC(wpPdfx);
+        const tacResult = await validateTAC(wpPdfxPath);
         result.weasyprint.tacValidation = tacResult;
 
         // Log summary

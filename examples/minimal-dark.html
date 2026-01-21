@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Minimal Dark Test</title>
+  <style>
+    @page {
+      size: 6.25in 9.25in;
+      margin: 0.5in;
+      /* Test with #555555 - should be ~67% black only */
+      background-color: #555555;
+    }
+    body {
+      background-color: #555555;
+      color: white;
+      font-family: sans-serif;
+    }
+    h1 {
+      color: yellow;
+    }
+  </style>
+</head>
+<body>
+  <h1>Minimal Dark Background Test</h1>
+  <p>This page should have a medium gray background (#555555).</p>
+  <p>Expected TAC after CMYK conversion: ~67% (K-only) to ~150% (with some CMY buildup)</p>
+</body>
+</html>

@@ -1,0 +1,1138 @@
+/* ==========================================================================
+   DARK THEME - Dimm City Inspired
+   TAC-Safe Rich Black with Cyberpunk Accents
+   Target: DriveThruRPG PDF/X-1a:2001 (240% TAC Max)
+   ========================================================================== */
+
+/* ============================================================================
+   FONT IMPORTS
+   ============================================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Tomorrow:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Titillium+Web:wght@300;400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
+
+/* ============================================================================
+   CSS VARIABLES - Design Tokens
+   ============================================================================ */
+
+:root {
+  /* === PAGE DIMENSIONS (6x9 + 0.125" bleed) === */
+  --page-width: 6.25in;
+  --page-height: 9.25in;
+  --page-margin: 0.625in;
+  --page-margin-inner: 0.75in;
+  --page-margin-outer: 0.5in;
+  --bleed: 0.125in;
+
+  /* === TAC-SAFE COLORS ===
+   * CRITICAL: Use device-cmyk() for backgrounds to control TAC
+   * Pure black (#000) converts to 400% TAC - NEVER USE
+   * Rich black: C=50 M=40 Y=40 K=100 = 230% TAC (SAFE)
+   */
+  --color-rich-black: device-cmyk(0.5 0.4 0.4 1);     /* 230% TAC - primary bg */
+  --color-rich-black-bold: device-cmyk(0.6 0.4 0.4 1); /* 240% TAC - max safe */
+  --color-dark-gray: device-cmyk(0.3 0.25 0.25 0.8);  /* ~160% TAC - lighter */
+
+  /* === ACCENT COLORS (Cyberpunk Neon) === */
+  --color-primary: #eaecec;           /* Light text on dark */
+  --color-accent-yellow: #ffee00;     /* Electric yellow */
+  --color-accent-cyan: #00d4ff;       /* Neon cyan */
+  --color-accent-magenta: #e500ff;    /* Hot magenta */
+  --color-accent-red: #ff4040;        /* Warning red */
+  --color-accent-green: #00ff66;      /* Success green */
+
+  /* === SEMANTIC COLORS === */
+  --color-text: #fafafa;
+  --color-text-muted: #a0a0a0;
+  --color-text-inverse: device-cmyk(0.5 0.4 0.4 1);
+  --color-border: #444444;
+  --color-border-accent: var(--color-accent-yellow);
+
+  /* Callout colors */
+  --color-note: #0099ff;
+  --color-note-bg: rgba(0, 153, 255, 0.15);
+  --color-tip: #00cc66;
+  --color-tip-bg: rgba(0, 204, 102, 0.15);
+  --color-warning: #ffdd00;
+  --color-warning-bg: rgba(255, 221, 0, 0.15);
+  --color-danger: #ff3333;
+  --color-danger-bg: rgba(255, 51, 51, 0.15);
+  --color-lore: #9966ff;
+  --color-lore-bg: rgba(153, 102, 255, 0.15);
+
+  /* === TYPOGRAPHY === */
+  --font-body: "Tomorrow", "Titillium Web", sans-serif;
+  --font-heading: "Titillium Web", "Tomorrow", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+
+  --font-size-base: 11pt;
+  --font-size-sm: 9pt;
+  --font-size-lg: 13pt;
+  --font-size-h1: 28pt;
+  --font-size-h2: 18pt;
+  --font-size-h3: 14pt;
+  --font-size-h4: 12pt;
+
+  --line-height: 1.5;
+  --line-height-tight: 1.2;
+
+  /* === SPACING === */
+  --space-1: 4pt;
+  --space-2: 8pt;
+  --space-3: 12pt;
+  --space-4: 16pt;
+  --space-6: 24pt;
+  --space-8: 32pt;
+}
+
+/* ============================================================================
+   @PAGE RULES
+   ============================================================================ */
+
+/* IMPORTANT: @page rules must use hardcoded values
+   CSS variables don't resolve in @page context for most engines */
+@page {
+  size: 6.25in 9.25in;
+  margin: 0.625in;
+  /* TAC-safe dark gray background
+     Using #555555 (~67% black) which stays well under 240% TAC after CMYK conversion
+     Medium gray converts to approximately K:67 alone or with minimal CMY buildup
+     WeasyPrint uses device-cmyk() with TAC-safe rich black formula */
+  background-color: #555555; /* Medium dark gray → safe TAC after conversion */
+  background-color: device-cmyk(0.5 0.4 0.4 1); /* 230% TAC rich black (field-guide formula) */
+
+  /* Page numbers */
+  @bottom-center {
+    content: counter(page);
+    font-family: "Tomorrow", "Titillium Web", sans-serif;
+    font-size: 9pt;
+    color: #ffee00;
+  }
+}
+
+@page :first {
+  @bottom-center { content: none; }
+  @top-left { content: none; }
+  @top-right { content: none; }
+}
+
+@page :left {
+  margin-left: 0.5in;
+  margin-right: 0.75in;
+
+  @bottom-left {
+    content: "p." counter(page);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 8pt;
+    color: #ffee00;
+  }
+  @bottom-right {
+    content: "c." counter(chapter);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 8pt;
+    color: #00d4ff;
+  }
+  @bottom-center { content: none; }
+}
+
+@page :right {
+  margin-left: 0.75in;
+  margin-right: 0.5in;
+
+  @bottom-left {
+    content: "c." counter(chapter);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 8pt;
+    color: #00d4ff;
+  }
+  @bottom-right {
+    content: "p." counter(page);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 8pt;
+    color: #ffee00;
+  }
+  @bottom-center { content: none; }
+}
+
+/* Named pages */
+@page cover {
+  margin: 0;
+  @bottom-center { content: none; }
+  @bottom-left { content: none; }
+  @bottom-right { content: none; }
+}
+
+@page chapter-start {
+  @bottom-left { content: none; }
+  @bottom-right { content: none; }
+  @bottom-center {
+    content: counter(page);
+    color: #e500ff;
+  }
+}
+
+/* ============================================================================
+   CHAPTER COUNTER
+   ============================================================================ */
+
+body {
+  counter-reset: chapter page footnote;
+}
+
+article {
+  counter-increment: chapter;
+}
+
+/* ============================================================================
+   BASE STYLES
+   ============================================================================ */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: var(--font-size-base);
+}
+
+body {
+  font-family: var(--font-body);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height);
+  color: var(--color-text);
+  /* TAC-safe dark gray background
+     Using #555555 which stays under 240% TAC after CMYK conversion
+     WeasyPrint uses device-cmyk() with TAC-safe rich black formula */
+  background-color: #555555; /* Medium dark gray → safe TAC after conversion */
+  background-color: device-cmyk(0.5 0.4 0.4 1); /* 230% TAC rich black (field-guide formula) */
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/* ============================================================================
+   PAGE CONTAINER
+   ============================================================================ */
+
+.page {
+  page-break-after: always;
+  page-break-inside: avoid;
+  min-height: 100%;
+  position: relative;
+}
+
+.page.cover {
+  page: cover;
+}
+
+.page.chapter-start {
+  page: chapter-start;
+}
+
+/* ============================================================================
+   TYPOGRAPHY
+   ============================================================================ */
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  line-height: var(--line-height-tight);
+  color: var(--color-accent-yellow);
+  margin-bottom: var(--space-3);
+  break-after: avoid;
+}
+
+h1 { font-size: var(--font-size-h1); }
+h2 {
+  font-size: var(--font-size-h2);
+  border-bottom: 2pt solid var(--color-accent-cyan);
+  padding-bottom: var(--space-2);
+  margin-top: var(--space-6);
+}
+h3 {
+  font-size: var(--font-size-h3);
+  color: var(--color-accent-cyan);
+}
+h4 {
+  font-size: var(--font-size-h4);
+  color: var(--color-accent-magenta);
+}
+
+p {
+  margin-bottom: var(--space-3);
+  orphans: 3;
+  widows: 3;
+}
+
+p.lead {
+  font-size: var(--font-size-lg);
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-4);
+}
+
+strong {
+  color: var(--color-accent-yellow);
+  font-weight: 600;
+}
+
+em {
+  font-style: italic;
+}
+
+code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.1em 0.3em;
+  border-radius: 2pt;
+  color: var(--color-accent-cyan);
+}
+
+a {
+  color: var(--color-accent-cyan);
+  text-decoration: none;
+}
+
+ul, ol {
+  margin-left: var(--space-4);
+  margin-bottom: var(--space-3);
+}
+
+li {
+  margin-bottom: var(--space-1);
+}
+
+li::marker {
+  color: var(--color-accent-magenta);
+}
+
+/* ============================================================================
+   COVER PAGE
+   ============================================================================ */
+
+.cover {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  /* RGB fallback for browsers that don't support device-cmyk() in gradients */
+  background: linear-gradient(
+    180deg,
+    #1a1a1a 0%,
+    #222222 50%,
+    #333333 100%
+  );
+}
+
+.cover-content {
+  padding: var(--space-8);
+}
+
+.cover-title {
+  font-size: 36pt;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-accent-yellow);
+  text-shadow: 0 0 20pt rgba(255, 238, 0, 0.3);
+  margin-bottom: var(--space-4);
+}
+
+.cover-subtitle {
+  font-size: 14pt;
+  color: var(--color-text-muted);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-bottom: var(--space-6);
+}
+
+.cover-badge {
+  display: inline-block;
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-accent-magenta);
+  color: white;
+  font-size: 10pt;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  margin-bottom: var(--space-6);
+}
+
+.cover-edition {
+  font-size: 10pt;
+  color: var(--color-text-muted);
+}
+
+/* ============================================================================
+   CREDITS PAGE
+   ============================================================================ */
+
+.credits {
+  padding-top: 2in;
+}
+
+.credits h1 {
+  text-align: center;
+  margin-bottom: var(--space-8);
+}
+
+.credits-block {
+  text-align: center;
+  margin-bottom: var(--space-6);
+}
+
+.credits-block h3 {
+  font-size: 10pt;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  margin-bottom: var(--space-1);
+}
+
+.credits-block p {
+  color: var(--color-accent-yellow);
+}
+
+.decorative-border {
+  margin-top: 2in;
+  height: 2pt;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--color-accent-cyan),
+    var(--color-accent-magenta),
+    var(--color-accent-yellow),
+    transparent
+  );
+}
+
+/* ============================================================================
+   TABLE OF CONTENTS
+   ============================================================================ */
+
+.toc h1 {
+  text-align: center;
+  margin-bottom: var(--space-8);
+}
+
+.toc-list {
+  columns: 2;
+  column-gap: var(--space-6);
+}
+
+.toc-section {
+  break-inside: avoid;
+  margin-bottom: var(--space-6);
+}
+
+.toc-section h2 {
+  font-size: 12pt;
+  border-bottom: 1pt solid var(--color-accent-cyan);
+  margin-bottom: var(--space-2);
+}
+
+.toc-section ul {
+  list-style: none;
+  margin-left: 0;
+}
+
+.toc-section li {
+  margin-bottom: var(--space-1);
+}
+
+.toc-entry {
+  display: block;
+  color: var(--color-text);
+}
+
+.toc-entry::after {
+  content: leader(dotted) " " target-counter(attr(href url), page);
+  color: var(--color-text-muted);
+}
+
+/* ============================================================================
+   CHAPTER START
+   ============================================================================ */
+
+.chapter-start {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.chapter-header {
+  padding: var(--space-8);
+}
+
+.chapter-number {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 72pt;
+  font-weight: 700;
+  color: var(--color-accent-magenta);
+  opacity: 0.3;
+  line-height: 1;
+}
+
+.chapter-title {
+  font-size: 32pt;
+  margin-bottom: var(--space-4);
+}
+
+.chapter-intro {
+  font-size: 12pt;
+  color: var(--color-text-muted);
+  max-width: 4in;
+}
+
+/* ============================================================================
+   CONTENT PAGES
+   ============================================================================ */
+
+.content h2:first-of-type {
+  margin-top: 0;
+}
+
+/* ============================================================================
+   MULTI-COLUMN LAYOUTS
+   ============================================================================ */
+
+.two-column {
+  columns: 2;
+  column-gap: var(--space-6);
+  column-rule: 1pt solid var(--color-border);
+}
+
+.three-column {
+  columns: 3;
+  column-gap: var(--space-4);
+  column-rule: 1pt solid var(--color-border);
+}
+
+.column {
+  break-inside: avoid;
+}
+
+.column-span {
+  column-span: all;
+  margin-top: var(--space-4);
+  margin-bottom: var(--space-3);
+}
+
+/* ============================================================================
+   FORMULA BOXES
+   ============================================================================ */
+
+.formula-box {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1pt solid var(--color-accent-cyan);
+  border-left: 3pt solid var(--color-accent-cyan);
+  padding: var(--space-2) var(--space-3);
+  margin: var(--space-2) 0;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+}
+
+.formula-box.danger {
+  border-color: var(--color-danger);
+  background: var(--color-danger-bg);
+}
+
+.warning-text {
+  color: var(--color-danger);
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+}
+
+/* ============================================================================
+   COLOR SAMPLES
+   ============================================================================ */
+
+.color-samples {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-4);
+  margin: var(--space-4) 0;
+}
+
+.color-sample {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1pt solid var(--color-border);
+  break-inside: avoid;
+}
+
+.color-swatch {
+  width: 60pt;
+  height: 60pt;
+  border: 1pt solid var(--color-border);
+}
+
+.pure-black .color-swatch {
+  background: #000000; /* RGB fallback */
+  background: device-cmyk(0 0 0 1);
+}
+
+.rich-black-safe .color-swatch {
+  background: #1a1a1a; /* RGB fallback */
+  background: device-cmyk(0.5 0.4 0.4 1);
+}
+
+.rich-black-bold .color-swatch {
+  background: #0f0f0f; /* RGB fallback */
+  background: device-cmyk(0.6 0.4 0.4 1);
+}
+
+.rgb-black .color-swatch {
+  background: #000000;
+}
+
+.color-info h4 {
+  font-size: 10pt;
+  margin-bottom: var(--space-1);
+}
+
+.color-info code {
+  display: block;
+  font-size: 8pt;
+  margin-bottom: var(--space-1);
+}
+
+.color-info p {
+  font-size: 8pt;
+  color: var(--color-text-muted);
+  margin-bottom: 0;
+}
+
+.tac-value {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 8pt;
+  padding: 1pt 4pt;
+  border-radius: 2pt;
+}
+
+.tac-value.safe {
+  background: var(--color-tip);
+  color: black;
+}
+
+.tac-value.warning {
+  background: var(--color-warning);
+  color: black;
+}
+
+.tac-value.danger {
+  background: var(--color-danger);
+  color: white;
+}
+
+/* ============================================================================
+   TABLES
+   ============================================================================ */
+
+.dark-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: var(--space-4) 0;
+  font-size: var(--font-size-sm);
+}
+
+.dark-table th,
+.dark-table td {
+  padding: var(--space-2) var(--space-3);
+  text-align: left;
+  border: 1pt solid var(--color-border);
+}
+
+.dark-table thead {
+  display: table-header-group;
+}
+
+.dark-table th {
+  background: var(--color-accent-yellow);
+  color: #1a1a1a; /* RGB fallback */
+  color: device-cmyk(0.5 0.4 0.4 1);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.dark-table.striped tbody tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.dark-table .highlight {
+  color: var(--color-accent-cyan);
+  font-weight: 600;
+}
+
+.dark-table .status-pass td:first-child {
+  border-left: 3pt solid var(--color-tip);
+}
+
+.dark-table .status-warning td:first-child {
+  border-left: 3pt solid var(--color-warning);
+}
+
+.dark-table .status-fail td:first-child {
+  border-left: 3pt solid var(--color-danger);
+}
+
+.dark-table .status-reject td:first-child {
+  border-left: 3pt solid var(--color-accent-magenta);
+}
+
+/* ============================================================================
+   SHAPE FLOATS
+   ============================================================================ */
+
+.float-demo {
+  margin: var(--space-4) 0;
+  min-height: 2in;
+}
+
+.float-demo::after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+.clearfix::after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+.shape-circle {
+  width: 1.5in;
+  height: 1.5in;
+  shape-outside: circle(50%);
+  shape-margin: 0.15in;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-accent-cyan), var(--color-accent-magenta));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.shape-diamond {
+  width: 1.5in;
+  height: 1.5in;
+  shape-outside: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+  shape-margin: 0.15in;
+  background: linear-gradient(135deg, var(--color-accent-yellow), var(--color-accent-red));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.float-left {
+  float: left;
+  margin-right: var(--space-4);
+}
+
+.float-right {
+  float: right;
+  margin-left: var(--space-4);
+}
+
+.shape-content {
+  text-align: center;
+}
+
+.shape-label {
+  font-size: 8pt;
+  font-weight: 700;
+  color: #1a1a1a; /* RGB fallback */
+  color: device-cmyk(0.5 0.4 0.4 1);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* ============================================================================
+   STAT BLOCKS
+   ============================================================================ */
+
+.stat-block {
+  background: rgba(255, 255, 255, 0.03);
+  border: 2pt solid var(--color-accent-magenta);
+  margin: var(--space-4) 0;
+  break-inside: avoid;
+}
+
+.stat-header {
+  background: var(--color-accent-magenta);
+  padding: var(--space-2) var(--space-3);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.stat-header h3 {
+  color: white;
+  margin: 0;
+  font-size: 12pt;
+}
+
+.stat-type {
+  font-size: 8pt;
+  color: rgba(255, 255, 255, 0.8);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.stat-body {
+  padding: var(--space-3);
+}
+
+.stat-row {
+  display: flex;
+  margin-bottom: var(--space-1);
+}
+
+.stat-label {
+  color: var(--color-text-muted);
+  margin-right: var(--space-2);
+}
+
+.stat-value {
+  color: var(--color-text);
+}
+
+.stat-divider {
+  height: 1pt;
+  background: linear-gradient(90deg, var(--color-accent-magenta), transparent);
+  margin: var(--space-3) 0;
+}
+
+.stat-abilities h4 {
+  font-size: 10pt;
+  margin-bottom: var(--space-2);
+}
+
+.stat-abilities ul {
+  margin-left: var(--space-3);
+  font-size: var(--font-size-sm);
+}
+
+.stat-quote {
+  font-style: italic;
+  color: var(--color-text-muted);
+  text-align: center;
+  font-size: var(--font-size-sm);
+}
+
+.stat-block.compact .stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.stat-cell {
+  text-align: center;
+  padding: var(--space-2);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.stat-cell .stat-label {
+  display: block;
+  font-size: 8pt;
+  margin-bottom: var(--space-1);
+}
+
+.stat-cell .stat-value {
+  font-size: 14pt;
+  font-weight: 600;
+  color: var(--color-accent-cyan);
+}
+
+.stat-description {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+/* ============================================================================
+   CALLOUTS
+   ============================================================================ */
+
+.callout {
+  padding: var(--space-3);
+  margin: var(--space-4) 0;
+  border-left: 4pt solid;
+  break-inside: avoid;
+}
+
+.callout h4 {
+  margin-bottom: var(--space-2);
+  font-size: 10pt;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.callout p {
+  margin-bottom: 0;
+  font-size: var(--font-size-sm);
+}
+
+.callout.note {
+  border-color: var(--color-note);
+  background: var(--color-note-bg);
+}
+
+.callout.note h4 {
+  color: var(--color-note);
+}
+
+.callout.tip {
+  border-color: var(--color-tip);
+  background: var(--color-tip-bg);
+}
+
+.callout.tip h4 {
+  color: var(--color-tip);
+}
+
+.callout.warning {
+  border-color: var(--color-warning);
+  background: var(--color-warning-bg);
+}
+
+.callout.warning h4 {
+  color: var(--color-warning);
+}
+
+.callout.danger {
+  border-color: var(--color-danger);
+  background: var(--color-danger-bg);
+}
+
+.callout.danger h4 {
+  color: var(--color-danger);
+}
+
+.callout.lore {
+  border-color: var(--color-lore);
+  background: var(--color-lore-bg);
+}
+
+.callout.lore h4 {
+  color: var(--color-lore);
+}
+
+/* ============================================================================
+   DISTRICT BADGES
+   ============================================================================ */
+
+.district-badge {
+  display: inline-block;
+  padding: 2pt 8pt;
+  border-radius: 2pt;
+  font-size: 8pt;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.district-badge.techd {
+  background: linear-gradient(135deg, #00ccff 0%, #0099cc 100%);
+  color: #003344;
+}
+
+.district-badge.entd {
+  background: linear-gradient(135deg, #ff00ff 0%, #cc00cc 100%);
+  color: #330033;
+}
+
+.district-badge.commd {
+  background: linear-gradient(135deg, #ffcc00 0%, #cc9900 100%);
+  color: #443300;
+}
+
+.district-badge.arcd {
+  background: linear-gradient(135deg, #9966ff 0%, #7744cc 100%);
+  color: #220044;
+}
+
+.district-badge.marketd {
+  background: linear-gradient(135deg, #00ff66 0%, #00cc44 100%);
+  color: #003322;
+}
+
+.district-badge.dark {
+  background: linear-gradient(135deg, #333333 0%, #111111 100%);
+  color: #eeeeee;
+  border: 1pt solid #666;
+}
+
+.badge-showcase {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-4);
+  margin: var(--space-4) 0;
+}
+
+.badge-item {
+  text-align: center;
+}
+
+.badge-item p {
+  font-size: 8pt;
+  color: var(--color-text-muted);
+  margin-top: var(--space-1);
+  margin-bottom: 0;
+}
+
+/* ============================================================================
+   FOOTNOTES (WeasyPrint)
+   ============================================================================ */
+
+.footnote {
+  float: footnote;
+  font-size: 8pt;
+  line-height: 1.4;
+}
+
+.footnote::footnote-call {
+  content: counter(footnote);
+  font-size: 0.7em;
+  vertical-align: super;
+  color: var(--color-accent-cyan);
+}
+
+.footnote::footnote-marker {
+  content: counter(footnote) ". ";
+  font-weight: 600;
+  color: var(--color-accent-cyan);
+}
+
+@page {
+  @footnote {
+    border-top: 1pt solid #444444;
+    padding-top: 8pt;
+    margin-top: 12pt;
+  }
+}
+
+/* ============================================================================
+   BACK COVER
+   ============================================================================ */
+
+.back-cover {
+  page: cover;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: var(--space-8);
+}
+
+.back-cover-content {
+  max-width: 4in;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.back-cover h2 {
+  border: none;
+  padding: 0;
+  margin-bottom: var(--space-3);
+}
+
+.back-cover p {
+  color: var(--color-text-muted);
+}
+
+.feature-list {
+  text-align: left;
+  margin: var(--space-6) 0;
+  padding: var(--space-4);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1pt solid var(--color-border);
+}
+
+.feature-list h3 {
+  font-size: 10pt;
+  margin-bottom: var(--space-2);
+}
+
+.feature-list ul {
+  font-size: var(--font-size-sm);
+  margin-left: var(--space-3);
+}
+
+.back-cover-footer {
+  margin-top: var(--space-6);
+}
+
+.tagline {
+  color: var(--color-accent-magenta);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 10pt;
+}
+
+/* ============================================================================
+   TIPS LIST
+   ============================================================================ */
+
+.tips-list {
+  background: rgba(255, 255, 255, 0.03);
+  padding: var(--space-3);
+  margin: var(--space-3) 0;
+}
+
+.tips-list li {
+  font-size: var(--font-size-sm);
+}
+
+/* ============================================================================
+   PRINT MEDIA
+   ============================================================================ */
+
+@media print {
+  body {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
+
+/* ============================================================================
+   WEASYPRINT SPECIFIC
+   ============================================================================ */
+
+/* WeasyPrint PDF bookmarks */
+h1 {
+  -weasy-bookmark-level: 1;
+  -weasy-bookmark-label: content();
+}
+
+h2 {
+  -weasy-bookmark-level: 2;
+  -weasy-bookmark-label: content();
+}
+
+h3 {
+  -weasy-bookmark-level: 3;
+  -weasy-bookmark-label: content();
+}
+
+/* Hyphenation */
+p, li {
+  hyphens: auto;
+  hyphenate-limit-chars: 6 3 3;
+  hyphenate-limit-lines: 2;
+}
+
+h1, h2, h3, h4, h5, h6, code {
+  hyphens: none;
+}

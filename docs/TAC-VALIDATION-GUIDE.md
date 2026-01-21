@@ -200,6 +200,130 @@ for (const page of result.perPage) {
 }
 ```
 
+## Critical: Ghostscript inkcov Measurement Behavior
+
+### Understanding How TAC Is Measured
+
+The `validate-tac.ts` script uses Ghostscript's `inkcov` device to measure TAC:
+
+```bash
+gs -dNOPAUSE -dBATCH -sDEVICE=inkcov input.pdf
+```
+
+**Important:** The `inkcov` device converts ALL content to CMYK internally before measuring. This means:
+
+1. **RGB colors are converted** using Ghostscript's default conversion algorithm
+2. **device-cmyk() values may be converted again** through the measurement pipeline
+3. **Reported TAC reflects Ghostscript's conversion**, not necessarily the actual CMYK values in the PDF
+
+### Implications for device-cmyk() Colors
+
+If you use `device-cmyk(0.5 0.4 0.4 1)` (which is mathematically 230% TAC):
+- **Expected TAC:** 230% (C:50 + M:40 + Y:40 + K:100)
+- **Reported TAC:** ~398% (Ghostscript converts it to 4-plate rich black)
+
+This is a **measurement artifact**, not necessarily an indication that the PDF itself is non-compliant.
+
+### When to Trust inkcov Results
+
+| Content Type | inkcov Reliability |
+|--------------|-------------------|
+| RGB content → PDF/X conversion | ✅ Reliable (measures actual conversion result) |
+| device-cmyk() solid colors | ⚠️ May misreport (converts again during measurement) |
+| Mixed RGB + device-cmyk() | ⚠️ Partially reliable |
+
+### Alternative Validation Methods
+
+For PDFs with `device-cmyk()` content, consider:
+
+1. **Adobe Acrobat Preflight** - Reads actual CMYK values from PDF
+2. **Manual inspection** - Open PDF in color-accurate viewer
+3. **Print test** - Order a proof print to verify actual ink coverage
+
+### Why This Matters
+
+- **Ghostscript inkcov** is useful for catching RGB-to-CMYK conversion issues
+- **device-cmyk() PDFs** may fail validation but actually be compliant
+- **Always use device-cmyk()** with the TAC-safe formula: `device-cmyk(0.5 0.4 0.4 1)` = 230% TAC
+
+---
+
+## CRITICAL: TAC Limiting Destroys Fonts
+
+### Warning: The Rasterization Problem
+
+The TAC limiting process (`limit-tac.ts`) uses a **TIFF pipeline** that rasterizes all PDF content:
+
+1. PDF pages → TIFF images (rasterization)
+2. Apply ICC profile to limit TAC
+3. TIFF images → PDF pages (re-assembly)
+
+**This destroys:**
+- ❌ All embedded fonts (text becomes raster images)
+- ❌ Vector graphics (become raster images)
+- ❌ Searchable/selectable text
+- ❌ PDF accessibility features
+
+### Symptoms After TAC Limiting
+
+```bash
+# Check if fonts were lost
+pdffonts output/file.pdf
+# If output is empty, fonts were rasterized
+```
+
+- Text appears pixelated at high zoom
+- `pdffonts` shows 0 embedded fonts
+- File size changes dramatically
+- PDF is essentially a "scanned document"
+
+### When TAC Limiting Is Applied
+
+The pipeline now **skips TAC limiting** for WeasyPrint when TAC is already ≤240%:
+
+```
+🔧 Checking TAC for WeasyPrint...
+   ✅ TAC already compliant (196.9%) - skipping TAC limiting to preserve fonts
+```
+
+If TAC exceeds 240%, a warning is shown:
+```
+🔧 Checking TAC for WeasyPrint...
+   ⚠️  TAC 250.0% exceeds 240% - applying TAC limiting (will rasterize)
+```
+
+### Best Practice: Avoid Needing TAC Limiting
+
+**Design for TAC compliance from the start:**
+
+1. **Use `device-cmyk()` colors** (WeasyPrint only):
+   ```css
+   /* TAC-safe rich black: 230% TAC */
+   body {
+     background-color: device-cmyk(0.5 0.4 0.4 1);
+   }
+   ```
+
+2. **Use K-only for text**:
+   ```css
+   body {
+     color: device-cmyk(0% 0% 0% 100%);
+   }
+   ```
+
+3. **Avoid overlapping heavy colors**
+
+4. **Use WeasyPrint with PDF/X-3** (preserves fonts + TAC-compliant colors)
+
+### If You Must Use TAC Limiting
+
+Accept that fonts will be lost and:
+- Use high DPI (300) for acceptable text quality
+- Verify text is readable at normal print sizes
+- Consider if "font quality" matters for your use case (e.g., photo books)
+
+---
+
 ## Troubleshooting
 
 ### TAC Validation Skipped

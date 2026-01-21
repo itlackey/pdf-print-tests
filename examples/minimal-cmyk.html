@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Minimal CMYK Test</title>
+  <style>
+    @page {
+      size: 6.25in 9.25in;
+      margin: 0.5in;
+      /* TAC-safe rich black: C=50 M=40 Y=40 K=100 = 230% TAC */
+      background-color: device-cmyk(0.5 0.4 0.4 1);
+    }
+    body {
+      background-color: device-cmyk(0.5 0.4 0.4 1);
+      color: white;
+      font-family: sans-serif;
+    }
+    h1 {
+      color: yellow;
+    }
+  </style>
+</head>
+<body>
+  <h1>Minimal CMYK Test</h1>
+  <p>This page uses device-cmyk(0.5 0.4 0.4 1) background.</p>
+  <p>Expected TAC: 230% (C:50 + M:40 + Y:40 + K:100)</p>
+</body>
+</html>
